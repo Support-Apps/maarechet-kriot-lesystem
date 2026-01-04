@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת קריאות - אגף המיחשוב</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb; --primary-dark: #1d4ed8; --primary-light: #dbeafe;
+            --success: #10b981; --success-light: #d1fae5;
+            --warning: #f59e0b; --warning-light: #fef3c7;
+            --danger: #ef4444; --danger-light: #fee2e2;
+            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+            --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+            --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        body { font-family: 'Heebo', sans-serif; background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); min-height: 100vh; color: var(--gray-800); }
+        
+        .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 1rem 2rem; box-shadow: var(--shadow-lg); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .logo-text h1 { font-size: 1.4rem; font-weight: 700; }
+        .logo-text span { font-size: 0.85rem; opacity: 0.9; }
+        .header-stats { display: flex; gap: 1.5rem; }
+        .stat-item { text-align: center; padding: 0.5rem 1rem; background: rgba(255,255,255,0.15); border-radius: 10px; min-width: 80px; }
+        .stat-number { font-size: 1.5rem; font-weight: 700; }
+        .stat-label { font-size: 0.75rem; opacity: 0.9; }
+        .header-time { text-align: left; font-size: 0.9rem; }
+        .header-time .date { font-weight: 600; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+        .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: white; padding: 0.5rem; border-radius: 16px; box-shadow: var(--shadow); flex-wrap: wrap; }
+        .nav-tab { padding: 0.75rem 1.5rem; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: 500; color: var(--gray-600); transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-tab:hover { background: var(--gray-100); color: var(--gray-800); }
+        .nav-tab.active { background: var(--primary); color: white; }
+        .nav-tab .badge { background: var(--danger); color: white; padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .nav-tab.active .badge { background: white; color: var(--primary); }
+
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .card { background: white; border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 1.5rem; }
+        .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 0.5rem; }
+        .card-body { padding: 1.5rem; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-label { font-size: 0.9rem; font-weight: 500; color: var(--gray-700); }
+        .form-label .required { color: var(--danger); }
+        .form-input, .form-select, .form-textarea { padding: 0.75rem 1rem; border: 2px solid var(--gray-200); border-radius: 10px; font-family: inherit; font-size: 0.95rem; transition: all 0.2s; background: white; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .form-select { cursor: pointer; -webkit-appearance: menulist; -moz-appearance: menulist; appearance: menulist; min-height: 44px; }
+        .form-select option { padding: 8px; background: white; color: black; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .btn-success { background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--gray-300); color: var(--gray-700); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
+        .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; }
+        .btn-delete { background: var(--danger); color: white; width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.2s; }
+        .btn-delete:hover { background: #dc2626; transform: scale(1.1); }
+
+        .priority-tag { padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; }
+        .priority-critical { background: var(--danger-light); color: var(--danger); }
+        .priority-high { background: #fef3c7; color: #b45309; }
+        .priority-medium { background: var(--primary-light); color: var(--primary); }
+        .priority-low { background: var(--success-light); color: var(--success); }
+
+        .status-tag { padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-open { background: var(--danger-light); color: var(--danger); }
+        .status-progress { background: var(--warning-light); color: #b45309; }
+        .status-resolved { background: var(--success-light); color: var(--success); }
+        .status-closed { background: var(--gray-200); color: var(--gray-600); }
+
+        .tickets-container { overflow-x: auto; }
+        .tickets-table { width: 100%; border-collapse: collapse; }
+        .tickets-table th { background: var(--gray-50); padding: 1rem; text-align: right; font-weight: 600; font-size: 0.85rem; color: var(--gray-600); border-bottom: 2px solid var(--gray-200); }
+        .tickets-table td { padding: 1rem; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+        .tickets-table tr:hover { background: var(--gray-50); }
+        .ticket-id { font-weight: 700; color: var(--primary); font-family: monospace; font-size: 0.95rem; }
+        .ticket-subject { font-weight: 500; color: var(--gray-800); max-width: 300px; }
+        .ticket-requester { display: flex; align-items: center; gap: 0.5rem; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; }
+        .phone-link { color: var(--primary); text-decoration: none; direction: ltr; unicode-bidi: bidi-override; }
+        .phone-link:hover { text-decoration: underline; }
+        .action-buttons { display: flex; gap: 0.5rem; align-items: center; }
+
+        .filters-bar { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .search-box { position: relative; flex: 1; min-width: 250px; }
+        .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 2px solid var(--gray-200); border-radius: 10px; font-family: inherit; font-size: 0.95rem; }
+        .search-box input:focus { outline: none; border-color: var(--primary); }
+        .search-box::before { content: "🔍"; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
+        .filter-select { padding: 0.75rem 1rem; border: 2px solid var(--gray-200); border-radius: 10px; font-family: inherit; font-size: 0.95rem; min-width: 150px; background: white; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 20px; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 1.25rem; font-weight: 700; }
+        .modal-close { width: 40px; height: 40px; border: none; background: var(--gray-100); border-radius: 10px; cursor: pointer; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: var(--gray-200); }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 1.5rem; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-start; gap: 1rem; }
+
+        .detail-section { margin-bottom: 1.5rem; }
+        .detail-section h3 { font-size: 1rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--gray-100); }
+        .detail-content { background: var(--gray-50); padding: 1rem; border-radius: 10px; line-height: 1.6; }
+        .ticket-meta { display: flex; gap: 1rem; flex-wrap: wrap; color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem; }
+
+        .timeline { position: relative; padding-right: 2rem; }
+        .timeline::before { content: ''; position: absolute; right: 7px; top: 0; bottom: 0; width: 2px; background: var(--gray-200); }
+        .timeline-item { position: relative; padding-bottom: 1.5rem; }
+        .timeline-item::before { content: ''; position: absolute; right: -2rem; top: 0.25rem; width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid var(--primary); }
+        .timeline-item.comment::before { border-color: var(--success); }
+        .timeline-item.status::before { border-color: var(--warning); }
+        .timeline-content { background: var(--gray-50); padding: 1rem; border-radius: 10px; }
+        .timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .timeline-author { font-weight: 600; color: var(--gray-800); }
+        .timeline-date { font-size: 0.85rem; color: var(--gray-500); }
+        .timeline-text { color: var(--gray-700); line-height: 1.5; }
+
+        .reminders-list { display: flex; flex-direction: column; gap: 1rem; }
+        .reminder-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 12px; border-right: 4px solid var(--warning); }
+        .reminder-item.overdue { border-right-color: var(--danger); background: var(--danger-light); }
+        .reminder-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--warning-light); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .reminder-content { flex: 1; }
+        .reminder-title { font-weight: 600; margin-bottom: 0.25rem; }
+        .reminder-meta { font-size: 0.85rem; color: var(--gray-500); }
+        .reminder-actions { display: flex; gap: 0.5rem; }
+
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem; }
+        .stat-card-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; }
+        .stat-card-icon.blue { background: var(--primary-light); }
+        .stat-card-icon.red { background: var(--danger-light); }
+        .stat-card-icon.yellow { background: var(--warning-light); }
+        .stat-card-icon.green { background: var(--success-light); }
+        .stat-card-content h3 { font-size: 1.75rem; font-weight: 700; color: var(--gray-800); }
+        .stat-card-content p { font-size: 0.9rem; color: var(--gray-500); }
+
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        .chart-container { height: 250px; display: flex; align-items: flex-end; gap: 0.75rem; padding: 1rem 0; }
+        .chart-bar { flex: 1; background: linear-gradient(to top, var(--primary) 0%, #60a5fa 100%); border-radius: 8px 8px 0 0; position: relative; min-height: 20px; }
+        .chart-bar span { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: var(--gray-500); white-space: nowrap; }
+        .chart-bar .value { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 0.85rem; font-weight: 600; color: var(--gray-700); }
+
+        .category-list { display: flex; flex-direction: column; gap: 1rem; }
+        .category-item { display: flex; align-items: center; gap: 1rem; }
+        .category-label { width: 120px; font-size: 0.9rem; color: var(--gray-600); }
+        .category-bar { flex: 1; height: 24px; background: var(--gray-100); border-radius: 12px; overflow: hidden; }
+        .category-fill { height: 100%; border-radius: 12px; }
+        .category-fill.hardware { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .category-fill.software { background: linear-gradient(90deg, #10b981, #34d399); }
+        .category-fill.network { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .category-fill.security { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .category-fill.other { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+        .category-value { width: 50px; text-align: left; font-weight: 600; color: var(--gray-700); }
+
+        .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .contact-card { background: var(--gray-50); border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; position: relative; cursor: pointer; }
+        .contact-card:hover { background: var(--gray-100); transform: translateY(-2px); }
+        .contact-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
+        .contact-info { flex: 1; }
+        .contact-info h4 { font-weight: 600; margin-bottom: 0.25rem; }
+        .contact-info p { font-size: 0.85rem; color: var(--gray-500); }
+        .contact-info a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        .contact-delete { position: absolute; top: 10px; left: 10px; }
+
+        .contact-actions-modal { background: white; border-radius: 16px; padding: 1.5rem; min-width: 280px; }
+        .contact-actions-modal h3 { margin-bottom: 1rem; text-align: center; }
+        .contact-action-btn { display: flex; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 0.5rem; border-radius: 10px; border: 2px solid var(--gray-200); cursor: pointer; transition: all 0.2s; background: white; width: 100%; font-family: inherit; font-size: 1rem; }
+        .contact-action-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+        .contact-action-btn .icon { font-size: 1.5rem; }
+
+        .empty-state { text-align: center; padding: 3rem; color: var(--gray-500); }
+        .empty-state-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        .empty-state h3 { font-size: 1.25rem; color: var(--gray-700); margin-bottom: 0.5rem; }
+
+        .toast-container { position: fixed; top: 1rem; left: 1rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; max-width: 350px; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { border-right: 4px solid var(--success); }
+        .toast.error { border-right: 4px solid var(--danger); }
+        .toast.warning { border-right: 4px solid var(--warning); }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+
+        .info-box { background: var(--primary-light); border: 2px solid var(--primary); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .info-box h4 { color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .info-box p { color: var(--gray-700); font-size: 0.9rem; line-height: 1.6; }
+        .info-box code { background: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: monospace; }
+
+        .email-template { background: var(--gray-50); border: 1px solid var(--gray-300); border-radius: 10px; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; text-align: center; }
+            .header-stats { flex-wrap: wrap; justify-content: center; }
+            .nav-tabs { justify-content: center; }
+            .tickets-table { font-size: 0.85rem; }
+            .tickets-table th, .tickets-table td { padding: 0.75rem 0.5rem; }
+            .action-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🖥️</div>
+                <div class="logo-text">
+                    <h1>מערכת קריאות</h1>
+                    <span>אגף המיחשוב - מחלקת סיסטם</span>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item"><div class="stat-number" id="totalTickets">0</div><div class="stat-label">סה"כ קריאות</div></div>
+                <div class="stat-item"><div class="stat-number" id="openTickets">0</div><div class="stat-label">פתוחות</div></div>
+                <div class="stat-item"><div class="stat-number" id="urgentTickets">0</div><div class="stat-label">דחופות</div></div>
+            </div>
+            <div class="header-time"><div class="date" id="currentDate"></div><div id="currentTime"></div></div>
+        </div>
+    </header>
+
+    <main class="container">
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('welcome', this)">🏠 ראשי</button>
+            <button class="nav-tab" onclick="showSection('technicians', this)">👨‍💻 טכנאים</button>
+            <button class="nav-tab" onclick="showSection('new-ticket', this)">➕ קריאה חדשה</button>
+            <button class="nav-tab" onclick="showSection('tickets', this)">🎫 קריאות <span class="badge" id="ticketsBadge">0</span></button>
+            <button class="nav-tab" onclick="showSection('reminders', this)">⏰ תזכורות <span class="badge" id="remindersBadge">0</span></button>
+            <button class="nav-tab" onclick="showSection('contacts', this)">👥 אנשי קשר</button>
+            <button class="nav-tab" onclick="showSection('history', this)">📜 היסטוריה</button>
+            <button class="nav-tab" onclick="showSection('email-tickets', this)">📧 קריאות במייל</button>
+            <button class="nav-tab" onclick="showSection('settings', this)">⚙️ הגדרות</button>
+            <button class="nav-tab" onclick="showSection('dashboard', this)">📊 לוח בקרה</button>
+        </nav>
+
+        <section id="welcome" class="content-section active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏠 ברוכים הבאים למערכת קריאות IT</h2>
+                </div>
+                <div class="card-body">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🖥️</div>
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">מערכת ניהול קריאות שירות</h3>
+                        <p style="font-size: 1.1rem; color: var(--gray-600); max-width: 600px; margin: 0 auto;">
+                            מערכת מקצועית לניהול קריאות שירות במחלקת IT - פתיחה, מעקב וטיפול ביעילות מקסימלית
+                        </p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                        <div class="info-box" style="background: linear-gradient(135deg, var(--primary-light) 0%, #f8fafc 100%); border: 2px solid var(--primary);">
+                            <h4 style="color: var(--primary-dark); display: flex; align-items: center; gap: 0.5rem;">
+                                🚀 התחלה מהירה
+                            </h4>
+                            <ol style="margin: 1rem 0; padding-right: 1rem;">
+                                <li><strong>הוסף טכנאים</strong> - עבור ללשונית "טכנאים" והוסף את צוות ה-IT</li>
+                                <li><strong>פתח קריאה</strong> - עבור ל"קריאה חדשה" וצור קריאת בדיקה</li>
+                                <li><strong>נהל קריאות</strong> - עבור ל"קריאות" לעקוב ולעדכן סטטוס</li>
+                            </ol>
+                        </div>
+
+                        <div class="info-box" style="background: linear-gradient(135deg, var(--success-light) 0%, #f8fafc 100%); border: 2px solid var(--success);">
+                            <h4 style="color: var(--success); display: flex; align-items: center; gap: 0.5rem;">
+                                ✨ יכולות המערכת
+                            </h4>
+                            <ul style="margin: 1rem 0; padding-right: 1rem;">
+                                <li>📝 פתיחת קריאות מהירה וקלה</li>
+                                <li>👨‍💻 הקצאת קריאות לטכנאים</li>
+                                <li>⏰ תזכורות אוטומטיות</li>
+                                <li>📊 דוחות והיסטוריה מפורטת</li>
+                                <li>📧 שליחת מיילים וקישורים</li>
+                                <li>💾 שמירה מקומית אמינה</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="background: var(--gray-50); border: 2px dashed var(--gray-300); margin-bottom: 2rem;">
+                        <div class="card-header" style="background: transparent; border: none;">
+                            <h3 style="color: var(--gray-700); display: flex; align-items: center; gap: 0.5rem;">
+                                🎯 מדריך מהיר - צעדים ראשונים
+                            </h3>
+                        </div>
+                        <div class="card-body" style="padding-top: 0;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                                <div style="text-align: center; padding: 1rem;">
+                                    <div style="width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; font-weight: bold;">1</div>
+                                    <h4 style="margin-bottom: 0.5rem;">הוסף טכנאים</h4>
+                                    <p style="color: var(--gray-600); font-size: 0.9rem;">לחץ על "טכנאים" והוסף את חברי הצוות</p>
+                                    <button class="btn btn-outline btn-sm" onclick="showSection('technicians', document.querySelectorAll('.nav-tab')[1])" style="margin-top: 0.5rem;">👨‍💻 לטכנאים</button>
+                                </div>
+                                
+                                <div style="text-align: center; padding: 1rem;">
+                                    <div style="width: 60px; height: 60px; background: var(--success); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; font-weight: bold;">2</div>
+                                    <h4 style="margin-bottom: 0.5rem;">פתח קריאה ראשונה</h4>
+                                    <p style="color: var(--gray-600); font-size: 0.9rem;">צור קריאת בדיקה לוודא שהכל עובד</p>
+                                    <button class="btn btn-outline btn-sm" onclick="showSection('new-ticket', document.querySelectorAll('.nav-tab')[2])" style="margin-top: 0.5rem;">➕ קריאה חדשה</button>
+                                </div>
+                                
+                                <div style="text-align: center; padding: 1rem;">
+                                    <div style="width: 60px; height: 60px; background: var(--warning); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; font-weight: bold;">3</div>
+                                    <h4 style="margin-bottom: 0.5rem;">עקוב ונהל</h4>
+                                    <p style="color: var(--gray-600); font-size: 0.9rem;">בדוק סטטוס וטפל בקריאות</p>
+                                    <button class="btn btn-outline btn-sm" onclick="showSection('tickets', document.querySelectorAll('.nav-tab')[3])" style="margin-top: 0.5rem;">🎫 קריאות</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box" style="background: linear-gradient(135deg, var(--warning-light) 0%, #fefdf8 100%); border: 2px solid var(--warning);">
+                        <h4 style="color: #b45309; display: flex; align-items: center; gap: 0.5rem;">
+                            💡 טיפים לשימוש יעיל
+                        </h4>
+                        <ul style="margin: 1rem 0; padding-right: 1rem; columns: 2; column-gap: 2rem;">
+                            <li>הוסף טכנאים לפני פתיחת קריאות</li>
+                            <li>השתמש בעדיפויות (קריטי/גבוה/בינוני/נמוך)</li>
+                            <li>הקצה קריאות לטכנאים המתאימים</li>
+                            <li>עדכן סטטוס קריאות באופן קבוע</li>
+                            <li>הוסף תזכורות לקריאות חשובות</li>
+                            <li>השתמש בהיסטוריה לדוחות</li>
+                            <li>הגדר הודעות מייל אוטומטיות</li>
+                            <li>בדוק לוח הבקרה לסטטיסטיקות</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard" class="content-section">
+            <div class="dashboard-stats">
+                <div class="stat-card"><div class="stat-card-icon blue">📋</div><div class="stat-card-content"><h3 id="statTotal">0</h3><p>סה"כ קריאות</p></div></div>
+                <div class="stat-card"><div class="stat-card-icon red">🔴</div><div class="stat-card-content"><h3 id="statOpen">0</h3><p>קריאות פתוחות</p></div></div>
+                <div class="stat-card"><div class="stat-card-icon yellow">🟡</div><div class="stat-card-content"><h3 id="statProgress">0</h3><p>בטיפול</p></div></div>
+                <div class="stat-card"><div class="stat-card-icon green">🟢</div><div class="stat-card-content"><h3 id="statResolved">0</h3><p>טופלו החודש</p></div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="card"><div class="card-header"><h2 class="card-title">📈 קריאות לפי יום</h2></div><div class="card-body"><div class="chart-container" id="weeklyChart"></div></div></div>
+                <div class="card"><div class="card-header"><h2 class="card-title">📊 התפלגות לפי קטגוריה</h2></div><div class="card-body"><div class="category-list" id="categoryChart"></div></div></div>
+            </div>
+            <div class="card"><div class="card-header"><h2 class="card-title">🔥 קריאות דחופות</h2></div><div class="card-body"><div id="urgentTicketsList"></div></div></div>
+        </section>
+
+        <section id="new-ticket" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">➕ פתיחת קריאה חדשה</h2></div>
+                <div class="card-body">
+                    <form id="newTicketForm">
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">שם פותח הקריאה <span class="required">*</span></label><input type="text" class="form-input" id="requesterName" required></div>
+                            <div class="form-group"><label class="form-label">מחלקה <span class="required">*</span></label><select class="form-select" id="department" required onchange="if(this.value==='אחר'){document.getElementById('departmentOther').style.display='block'}else{document.getElementById('departmentOther').style.display='none';document.getElementById('departmentOther').value=''}"><option value="">בחר...</option><option value="הנהלה">הנהלה</option><option value="כספים">כספים</option><option value="משאבי אנוש">משאבי אנוש</option><option value="שיווק">שיווק</option><option value="מכירות">מכירות</option><option value="תפעול">תפעול</option><option value="פיתוח">פיתוח</option><option value="אחר">אחר</option></select><input type="text" class="form-input" id="departmentOther" placeholder="הזן שם מחלקה..." style="display:none;margin-top:0.5rem"></div>
+                            <div class="form-group"><label class="form-label">טלפון <span class="required">*</span></label><input type="tel" class="form-input" id="phone" placeholder="050-0000000" required></div>
+                            <div class="form-group"><label class="form-label">דוא"ל <span class="required">*</span></label><input type="email" class="form-input" id="email" required></div>
+                            <div class="form-group full-width"><label class="form-label">נושא <span class="required">*</span></label><input type="text" class="form-input" id="subject" required></div>
+                            <div class="form-group"><label class="form-label">קטגוריה <span class="required">*</span></label><select class="form-select" id="category" required><option value="">בחר...</option><option value="hardware">חומרה</option><option value="software">תוכנה</option><option value="network">רשת</option><option value="security">אבטחה</option><option value="other">אחר</option></select></div>
+                            <div class="form-group"><label class="form-label">עדיפות</label><select class="form-select" id="priority"><option value="low">נמוך</option><option value="medium" selected>בינוני</option><option value="high">גבוה</option><option value="critical">קריטי</option></select></div>
+                            <div class="form-group"><label class="form-label">הקצאה לטכנאי</label><select class="form-select" id="assignee"><option value="">לא הוקצה</option></select></div>
+                            <div class="form-group"><label class="form-label">תזכורת</label><input type="datetime-local" class="form-input" id="reminder"></div>
+                            <div class="form-group full-width"><label class="form-label">תיאור <span class="required">*</span></label><textarea class="form-textarea" id="description" required placeholder="תאר את הבעיה..."></textarea></div>
+                        </div>
+                        <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-primary" onclick="submitTicket()">📤 פתח קריאה</button>
+                            <button type="button" class="btn btn-success" onclick="openAddReminderModal()">⏰ הוסף תזכורת</button>
+                            <button type="button" class="btn btn-outline" onclick="sendEmailToUser()">📧 שלח מייל למשתמש</button>
+                            <button type="reset" class="btn btn-outline">🔄 נקה</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="tickets" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🎫 רשימת קריאות</h2>
+                    <div class="filters-bar">
+                        <div class="search-box"><input type="text" id="searchTickets" placeholder="חיפוש..." oninput="filterTickets()"></div>
+                        <select class="filter-select" id="filterStatus" onchange="filterTickets()"><option value="">כל הסטטוסים</option><option value="open">פתוח</option><option value="progress">בטיפול</option><option value="resolved">טופל</option></select>
+                        <select class="filter-select" id="filterPriority" onchange="filterTickets()"><option value="">כל העדיפויות</option><option value="critical">קריטי</option><option value="high">גבוה</option><option value="medium">בינוני</option><option value="low">נמוך</option></select>
+                    </div>
+                </div>
+                <div class="card-body"><div class="tickets-container"><table class="tickets-table"><thead><tr><th>מס'</th><th>נושא</th><th>פותח</th><th>טלפון</th><th>קטגוריה</th><th>עדיפות</th><th>סטטוס</th><th>טכנאי</th><th>תאריך</th><th>פעולות</th></tr></thead><tbody id="ticketsTableBody"></tbody></table></div></div>
+            </div>
+        </section>
+
+        <section id="reminders" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">⏰ תזכורות</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-warning btn-sm" onclick="checkDelayedTickets()" title="בדוק קריאות שנתקעו">🚨 בדוק עיכובים</button>
+                        <button class="btn btn-primary btn-sm" onclick="openAddReminderModal()">➕ הוסף</button>
+                    </div>
+                </div>
+                <div class="card-body"><div class="reminders-list" id="remindersList"></div></div>
+            </div>
+        </section>
+
+        <section id="technicians" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">👨‍💻 טכנאים</h2><button class="btn btn-primary btn-sm" onclick="openAddTechnicianModal()">➕ הוסף טכנאי</button></div>
+                <div class="card-body">
+                    <div class="info-box" style="margin-bottom:1rem;">
+                        <p>כאן מנהלים את רשימת הטכנאים שאפשר להקצות להם קריאות</p>
+                    </div>
+                    <div class="contacts-grid" id="techniciansGrid"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contacts" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">👥 אנשי קשר</h2><button class="btn btn-primary btn-sm" onclick="openAddContactModal()">➕ הוסף</button></div>
+                <div class="card-body"><div class="contacts-grid" id="contactsGrid"></div></div>
+            </div>
+        </section>
+
+        <section id="history" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📜 היסטוריה</h2>
+                    <div class="filters-bar">
+                        <input type="date" class="form-input" id="historyFrom" onchange="filterHistory()">
+                        <span>עד</span>
+                        <input type="date" class="form-input" id="historyTo" onchange="filterHistory()">
+                        <button class="btn btn-outline btn-sm" onclick="exportHistoryToExcel()">📊 ייצוא לאקסל</button>
+                        <button class="btn btn-outline btn-sm" onclick="saveHistoryAsFile()">💾 שמירה</button>
+                        <button class="btn btn-outline btn-sm" onclick="sendHistoryByEmail()">📧 שלח במייל</button>
+                    </div>
+                </div>
+                <div class="card-body"><div class="tickets-container"><table class="tickets-table"><thead><tr><th>מס'</th><th>נושא</th><th>פותח</th><th>נפתח</th><th>נסגר</th><th>זמן טיפול</th><th>פעולות</th></tr></thead><tbody id="historyTableBody"></tbody></table></div></div>
+            </div>
+        </section>
+
+        <section id="email-tickets" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">📧 פתיחת קריאות במייל</h2></div>
+                <div class="card-body">
+                    <div class="info-box" style="background: #e8f5e8; border-left: 4px solid #27ae60; margin-bottom: 1.5rem;">
+                        <h4 style="margin: 0 0 1rem; color: #27ae60;">🔗 קישור לפתיחת פניה במייל</h4>
+                        <p style="margin: 0 0 1rem;">שתפו את הקישור הזה עם העובדים כדי שיוכלו לפתוח קריאות חדשות:</p>
+                        <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #ddd; margin: 1rem 0; font-family: monospace; font-size: 0.9rem; color: #666; word-break: break-all;">
+                            https://docs.google.com/forms/d/e/1FAIpQLSfPG-sw7LNKrThP99gZfLKMDD1AKTsXqaBO0A9MJDJ4C3-oyw/viewform?usp=header
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button class="btn btn-primary btn-sm" onclick="shareFormByEmail()">📧 שתף במייל</button>
+                            <button class="btn btn-outline btn-sm" onclick="shareFormByWhatsApp()">📱 שתף בווטסאפ</button>
+                        </div>
+                    </div>
+
+                    <div class="info-box" style="background: #e6f3ff; border-left: 4px solid #2196f3; margin-bottom: 1.5rem;">
+                        <h4 style="margin: 0 0 0.5rem; color: #2196f3;">🔔 התראות אוטומטיות</h4>
+                        <p style="margin: 0 0 1rem;">כדי לקבל התראות כשמגיעות קריאות חדשות מ-Google Forms:</p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary btn-sm" onclick="requestNotifications()">🔔 אפשר התראות</button>
+                            <button class="btn btn-sm" onclick="testSystemNotification()" style="background: #ffb3d9; color: #333; border: 1px solid #ff99cc;">🧪 בדוק התראה</button>
+                            <button class="btn btn-success btn-sm" onclick="simulateNewTicket()">🎭 סמלץ קריאה חדשה</button>
+                        </div>
+                        <div id="notificationStatus" style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.7); border-radius: 6px; font-size: 0.9rem;"></div>
+                        
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid #28a745;">
+                            <h5 style="margin: 0 0 0.5rem; color: #28a745;">🧪 בדיקת החיבור:</h5>
+                            <ol style="margin: 0; padding-right: 1.5rem; font-size: 0.9rem;">
+                                <li><strong>לחצו "🔔 אפשר התראות"</strong> ואשרו בדפדפן</li>
+                                <li><strong>לחצו "🧪 בדוק התראה"</strong> - אמורה להופיע התראה עם צליל</li>
+                                <li><strong>לחצו "🎭 סמלץ קריאה חדשה"</strong> - בדיקה מלאה של המערכת</li>
+                                <li>אם הכל עובד - <strong>מלאו טופס אמיתי</strong> ותקבלו התראה!</li>
+                            </ol>
+                        </div>
+                    </div>
+
+
+
+
+                    <h3 style="margin: 2rem 0 1rem;">📬 קריאות שהתקבלו במייל</h3>
+                    <div id="emailTicketsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h3>אין קריאות חדשות במייל</h3>
+                            <p>קריאות שיתקבלו במייל יופיעו כאן</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">⚙️ הגדרות</h2></div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group"><label class="form-label">שם הארגון</label><input type="text" class="form-input" id="orgName" value="אגף המיחשוב" onchange="saveSettings()"></div>
+                        <div class="form-group"><label class="form-label">קידומת קריאה</label><input type="text" class="form-input" id="ticketPrefix" value="IT" onchange="saveSettings()"></div>
+                        <div class="form-group"><label class="form-label">מייל מערכת</label><input type="email" class="form-input" id="systemEmail" placeholder="helpdesk@company.com" onchange="saveSettings()"></div>
+                        <div class="form-group"><label class="form-label">מייל לקבלת קריאות</label><input type="email" class="form-input" id="helpdeskEmail" placeholder="tickets@company.com" onchange="saveSettings();"></div>
+                        <div class="form-group"><label class="form-label">זמן לשליחת תזכורת (שעות)</label><input type="number" class="form-input" id="reminderHours" value="168" onchange="saveSettings()"></div>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 2rem;">
+                        <h4>💡 הסבר על ייצוא וייבוא</h4>
+                        <p><strong>ייצוא:</strong> שומר את כל הנתונים של המערכת (קריאות, אנשי קשר, תזכורות, הגדרות) לקובץ JSON שתוכל לשמור במחשב שלך כגיבוי.</p>
+                        <p><strong>ייבוא:</strong> מאפשר לטעון נתונים מקובץ JSON שיצאת בעבר - שימושי לשחזור גיבוי או העברת נתונים למחשב אחר.</p>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200);">
+                        <h3 style="margin-bottom: 1rem;">ניהול נתונים</h3>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-outline" onclick="exportAllData()">📥 ייצוא נתונים (גיבוי)</button>
+                            <button class="btn btn-outline" onclick="importData()">📤 ייבוא נתונים (שחזור)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title" id="modalTicketId">קריאה #</h2><button class="modal-close" onclick="closeModal('ticketModal')">✕</button></div>
+            <div class="modal-body" id="ticketModalBody"></div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveTicketChanges()">💾 שמור</button><button class="btn btn-outline" onclick="closeModal('ticketModal')">סגור</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reminderModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">➕ תזכורת חדשה</h2><button class="modal-close" onclick="closeModal('reminderModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width"><label class="form-label">כותרת <span class="required">*</span></label><input type="text" class="form-input" id="reminderTitle"></div>
+                    <div class="form-group"><label class="form-label">תאריך ושעה <span class="required">*</span></label><input type="datetime-local" class="form-input" id="reminderDateTime"></div>
+                    <div class="form-group"><label class="form-label">קריאה קשורה</label><select class="form-select" id="reminderTicket"><option value="">ללא</option></select></div>
+                    <div class="form-group full-width"><label class="form-label">הערות</label><textarea class="form-textarea" id="reminderNotes" rows="3"></textarea></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveReminder()">💾 שמור</button><button class="btn btn-outline" onclick="closeModal('reminderModal')">ביטול</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">➕ איש קשר חדש</h2><button class="modal-close" onclick="closeModal('contactModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label">שם <span class="required">*</span></label><input type="text" class="form-input" id="contactName"></div>
+                    <div class="form-group"><label class="form-label">תפקיד <span class="required">*</span></label><input type="text" class="form-input" id="contactRole"></div>
+                    <div class="form-group"><label class="form-label">קטגוריה <span class="required">*</span></label><select class="form-select" id="contactCategory" onchange="if(this.value==='אחר'){document.getElementById('contactCategoryOther').style.display='block'}else{document.getElementById('contactCategoryOther').style.display='none';document.getElementById('contactCategoryOther').value=''}"><option value="">בחר...</option><option value="טכנאי">טכנאי</option><option value="מנהל">מנהל</option><option value="תמיכה">תמיכה</option><option value="אחר">אחר</option></select><input type="text" class="form-input" id="contactCategoryOther" placeholder="הזן קטגוריה..." style="display:none;margin-top:0.5rem"></div>
+                    <div class="form-group"><label class="form-label">טלפון <span class="required">*</span></label><input type="tel" class="form-input" id="contactPhone"></div>
+                    <div class="form-group"><label class="form-label">דוא"ל</label><input type="email" class="form-input" id="contactEmail"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveContact()">💾 שמור</button><button class="btn btn-outline" onclick="closeModal('contactModal')">ביטול</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="contactActionsModal">
+        <div class="modal" style="max-width: 350px;">
+            <div class="modal-header"><h2 class="modal-title" id="contactActionName">פעולות</h2><button class="modal-close" onclick="closeModal('contactActionsModal')">✕</button></div>
+            <div class="modal-body">
+                <button class="contact-action-btn" onclick="contactAction('call')"><span class="icon">📞</span>התקשר</button>
+                <button class="contact-action-btn" onclick="contactAction('whatsapp')"><span class="icon">💬</span>וואטסאפ</button>
+                <button class="contact-action-btn" onclick="contactAction('email')"><span class="icon">📧</span>שלח מייל</button>
+                <button class="contact-action-btn" onclick="contactAction('sms')"><span class="icon">💌</span>שלח SMS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="technicianModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">👨‍💻 הוספת טכנאי</h2><button class="modal-close" onclick="closeModal('technicianModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label">שם מלא <span class="required">*</span></label><input type="text" class="form-input" id="techName"></div>
+                    <div class="form-group"><label class="form-label">תפקיד</label><input type="text" class="form-input" id="techRole" placeholder="טכנאי מחשבים"></div>
+                    <div class="form-group"><label class="form-label">טלפון <span class="required">*</span></label><input type="tel" class="form-input" id="techPhone"></div>
+                    <div class="form-group"><label class="form-label">דוא"ל <span class="required">*</span></label><input type="email" class="form-input" id="techEmail"></div>
+                    <div class="form-group full-width"><label class="form-label">התמחות</label><input type="text" class="form-input" id="techSpecialty" placeholder="חומרה, תוכנה, רשתות..."></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveTechnician()">💾 שמור טכנאי</button><button class="btn btn-outline" onclick="closeModal('technicianModal')">ביטול</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="assignModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 class="modal-title">👨‍💻 הקצאת טכנאי</h2>
+                <button class="modal-close" onclick="closeModal('assignModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--gray-600);">קריאה: <strong id="assignTicketId"></strong></p>
+                <div class="form-group">
+                    <label class="form-label">בחר טכנאי:</label>
+                    <select class="form-select" id="assignTechSelect" style="width: 100%; padding: 0.75rem; border: 2px solid var(--gray-200); border-radius: 8px;">
+                        <option value="">לא הוקצה</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveAssignmentSimple()">💾 שמור הקצאה</button>
+                <button class="btn btn-outline" onclick="closeModal('assignModal')">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="assignModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header"><h2 class="modal-title">הקצאת טכנאי לקריאה</h2><button class="modal-close" onclick="closeModal('assignModal')">✕</button></div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">בחר טכנאי:</label>
+                </div>
+                
+                <div id="assignButtons">
+                    <!-- כפתורים ייווצרו כאן -->
+                </div>
+                
+                <div id="assignResult" style="margin-top: 1rem; padding: 1rem; background: var(--primary-light); border-radius: 8px; display: none;">
+                    <strong>נבחר: </strong><span id="assignSelected"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveAssignment()">💾 הקצה טכנאי</button>
+                <button class="btn btn-outline" onclick="closeModal('assignModal')">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script>
+        // ============================================
+        // 💾 מערכת שמירה מקומית
+        // ============================================
+        var SCRIPT_URL = ''; // ריק = עבודה מקומית בלבד
+        // ============================================
+
+        var tickets = JSON.parse(localStorage.getItem('hd_tickets')) || [];
+        var contacts = JSON.parse(localStorage.getItem('hd_contacts')) || [];
+        var technicians = JSON.parse(localStorage.getItem('hd_technicians')) || [];
+        var reminders = JSON.parse(localStorage.getItem('hd_reminders')) || [];
+        var settings = JSON.parse(localStorage.getItem('hd_settings')) || {orgName:'אגף המיחשוב',ticketPrefix:'IT',systemEmail:'',helpdeskEmail:'',reminderHours:168};
+        var technicianEmails = JSON.parse(localStorage.getItem('hd_tech_emails')) || [];
+        var ticketCounter = parseInt(localStorage.getItem('hd_counter')) || 1000;
+        var currentTicketId = null;
+        var currentContactForAction = null;
+
+        // Global click handler for all delete buttons
+        document.addEventListener('click', function(e) {
+            var target = e.target;
+            
+            // Delete ticket
+            if (target.hasAttribute('data-delete-ticket')) {
+                e.stopPropagation();
+                e.preventDefault();
+                var id = target.getAttribute('data-delete-ticket');
+                tickets = tickets.filter(function(t) { return t.id !== id; });
+                saveTickets();
+                renderAll();
+                showToast('success', 'נמחק');
+                return;
+            }
+            
+            // Delete contact
+            if (target.hasAttribute('data-delete-contact')) {
+                e.stopPropagation();
+                e.preventDefault();
+                var id = target.getAttribute('data-delete-contact');
+                contacts = contacts.filter(function(c) { return c.id !== id; });
+                saveContacts();
+                renderContacts();
+                showToast('success', 'איש קשר נמחק');
+                return;
+            }
+            
+            // Delete technician
+            if (target.hasAttribute('data-delete-technician')) {
+                e.stopPropagation();
+                e.preventDefault();
+                var id = target.getAttribute('data-delete-technician');
+                technicians = technicians.filter(function(t) { return t.id !== id; });
+                saveTechnicians();
+                renderTechnicians();
+                populateAssigneeDropdown();
+                showToast('success', 'טכנאי נמחק');
+                return;
+            }
+            
+            // Delete reminder
+            if (target.hasAttribute('data-delete-reminder')) {
+                e.stopPropagation();
+                e.preventDefault();
+                var id = target.getAttribute('data-delete-reminder');
+                reminders = reminders.filter(function(r) { return r.id !== id; });
+                saveReminders();
+                renderReminders();
+                updateStats();
+                return;
+            }
+            
+            // Delete from history
+            if (target.hasAttribute('data-delete-history')) {
+                e.stopPropagation();
+                e.preventDefault();
+                var id = target.getAttribute('data-delete-history');
+                tickets = tickets.filter(function(t) { return t.id !== id; });
+                saveTickets();
+                renderHistory();
+                renderAll();
+                showToast('success', 'נמחק');
+                return;
+            }
+            
+            // Open contact actions
+            if (target.hasAttribute('data-contact-card')) {
+                var id = target.getAttribute('data-contact-card');
+                openContactActions(id);
+                return;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime(); 
+            setInterval(updateDateTime, 1000);
+            
+            // Ensure date/time elements are visible
+            setTimeout(() => {
+                const dateEl = document.getElementById('currentDate');
+                const timeEl = document.getElementById('currentTime');
+                if (dateEl && !dateEl.textContent.trim()) {
+                    updateDateTime(); // Force update if empty
+                }
+            }, 100);
+            
+            // בדוק נתונים חדשים מ-Google Forms כל 5 שניות
+            checkForNewFormsData(); // בדיקה ראשונה מיידית
+            setInterval(checkForNewFormsData, 5000);
+            
+            // טען הגדרות התראות - מוכן לעתיד
+            
+            // Load data from local storage
+            if (SCRIPT_URL) {
+                loadAllData().then(function() {
+                    renderAll();
+                    loadSettings();
+                    populateAssigneeDropdown();
+                    
+                    renderTechnicians();
+                    checkDelayedTickets();
+                    
+                    // Check for overdue tickets after 2 seconds
+                    setTimeout(checkDelayedTickets, 2000);
+                }).catch(function(error) {
+                    console.error('שגיאה בטעינת נתונים:', error);
+                    // Fallback to localStorage
+                    renderAll();
+                    loadSettings();
+                    populateAssigneeDropdown();
+                    
+                    renderTechnicians();
+                    checkDelayedTickets();
+                });
+            } else {
+                // Use localStorage
+                renderAll();
+                loadSettings();
+                populateAssigneeDropdown();
+                
+                renderTechnicians();
+                checkDelayedTickets();
+            }
+            
+            setInterval(checkDelayedTickets, 3600000);
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('he-IL', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('he-IL');
+        }
+
+        function showSection(sectionId, tab) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            if (tab) tab.classList.add('active');
+            renderAll();
+        }
+
+        function renderAll() { 
+            updateStats(); 
+            renderDashboard(); 
+            renderTickets(); 
+            renderReminders(); 
+            renderContacts(); 
+            renderHistory(); 
+        }
+
+        function updateStats() {
+            const open = tickets.filter(t => t.status === 'open').length;
+            const progress = tickets.filter(t => t.status === 'progress').length;
+            const newTickets = tickets.filter(t => t.status === 'new').length;
+            const urgent = tickets.filter(t => ['critical','high'].includes(t.priority) && t.status !== 'closed').length;
+            const resolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+
+            document.getElementById('totalTickets').textContent = tickets.length;
+            document.getElementById('openTickets').textContent = open + progress + newTickets;
+            document.getElementById('urgentTickets').textContent = urgent;
+            document.getElementById('ticketsBadge').textContent = open + progress + newTickets;
+            document.getElementById('remindersBadge').textContent = reminders.filter(r => !r.completed).length;
+            document.getElementById('statTotal').textContent = tickets.length;
+            document.getElementById('statOpen').textContent = open;
+            document.getElementById('statProgress').textContent = progress;
+            document.getElementById('statResolved').textContent = resolved;
+        }
+
+        function renderDashboard() { renderWeeklyChart(); renderCategoryChart(); renderUrgentTickets(); }
+
+        function renderWeeklyChart() {
+            const container = document.getElementById('weeklyChart');
+            const days = ['א','ב','ג','ד','ה','ו','ש'];
+            const today = new Date();
+            const weekData = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today); date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const count = tickets.filter(t => t.createdAt && t.createdAt.split('T')[0] === dateStr).length;
+                weekData.push({day: days[date.getDay()], count});
+            }
+            const maxCount = Math.max(...weekData.map(d => d.count), 1);
+            container.innerHTML = weekData.map(d => `<div class="chart-bar" style="height:${(d.count/maxCount)*100}%"><span class="value">${d.count}</span><span>${d.day}</span></div>`).join('');
+        }
+
+        function renderCategoryChart() {
+            const container = document.getElementById('categoryChart');
+            const cats = {hardware:{label:'חומרה',count:0},software:{label:'תוכנה',count:0},network:{label:'רשת',count:0},security:{label:'אבטחה',count:0},other:{label:'אחר',count:0}};
+            tickets.forEach(t => { if(cats[t.category]) cats[t.category].count++; });
+            const total = tickets.length || 1;
+            container.innerHTML = Object.entries(cats).map(([k,v]) => `<div class="category-item"><span class="category-label">${v.label}</span><div class="category-bar"><div class="category-fill ${k}" style="width:${(v.count/total)*100}%"></div></div><span class="category-value">${v.count}</span></div>`).join('');
+        }
+
+        function renderUrgentTickets() {
+            const container = document.getElementById('urgentTicketsList');
+            const urgent = tickets.filter(t => ['critical','high'].includes(t.priority) && ['open','progress'].includes(t.status)).slice(0,5);
+            if (urgent.length === 0) { container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✅</div><h3>אין קריאות דחופות</h3></div>`; return; }
+            container.innerHTML = `<table class="tickets-table"><tbody>${urgent.map(t => `<tr><td><span class="ticket-id">${t.id}</span></td><td>${t.subject}</td><td>${t.requesterName}</td><td><span class="priority-tag priority-${t.priority}">${getPriorityLabel(t.priority)}</span></td><td><button class="btn btn-sm btn-outline" onclick="openTicketModal('${t.id}')">צפייה</button></td></tr>`).join('')}</tbody></table>`;
+        }
+
+        function renderTickets() {
+            var tbody = document.getElementById('ticketsTableBody');
+            var filtered = tickets.filter(function(t) { return t.status !== 'closed'; });
+            var search = document.getElementById('searchTickets').value.toLowerCase();
+            var status = document.getElementById('filterStatus').value;
+            var priority = document.getElementById('filterPriority').value;
+            if (search) filtered = filtered.filter(function(t) { return t.subject.toLowerCase().includes(search) || t.requesterName.toLowerCase().includes(search) || t.id.toLowerCase().includes(search); });
+            if (status) filtered = filtered.filter(function(t) { return t.status === status; });
+            if (priority) filtered = filtered.filter(function(t) { return t.priority === priority; });
+            filtered.sort(function(a,b) { return ({critical:0,high:1,medium:2,low:3})[a.priority] - ({critical:0,high:1,medium:2,low:3})[b.priority]; });
+            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">📭</div><h3>לא נמצאו קריאות</h3></div></td></tr>'; return; }
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var t = filtered[i];
+                html += '<tr>';
+                html += '<td><span class="ticket-id">' + t.id + '</span></td>';
+                html += '<td class="ticket-subject">' + t.subject + '</td>';
+                html += '<td><div class="ticket-requester"><div class="avatar">' + getInitials(t.requesterName) + '</div><div>' + t.requesterName + '<br><small style="color:var(--gray-500)">' + t.department + '</small></div></div></td>';
+                html += '<td><a href="tel:' + t.phone + '" class="phone-link">' + t.phone + '</a></td>';
+                html += '<td>' + getCategoryLabel(t.category) + '</td>';
+                html += '<td><span class="priority-tag priority-' + t.priority + '">' + getPriorityLabel(t.priority) + '</span></td>';
+                html += '<td><span class="status-tag status-' + t.status + '">' + getStatusLabel(t.status) + '</span></td>';
+                html += '<td>' + (t.assignee || '<span style="color:var(--gray-400)">לא הוקצה</span>') + '</td>';
+                html += '<td>' + formatDate(t.createdAt) + '</td>';
+                html += '<td><div class="action-buttons">';
+                html += '<button class="btn btn-icon btn-outline" onclick="openTicketModal(\'' + t.id + '\')" title="צפייה">👁️</button>';
+                html += '<button class="btn btn-icon btn-outline" onclick="openAssignModal(\'' + t.id + '\')" title="הקצה טכנאי">👨‍💻</button>';
+                html += '<button class="btn btn-icon btn-outline" onclick="window.location.href=\'tel:' + t.phone + '\'" title="התקשר">📞</button>';
+                html += '<button class="btn-delete" data-delete-ticket="' + t.id + '" title="מחק">✕</button>';
+                html += '</div></td>';
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function filterTickets() { renderTickets(); }
+
+        function renderReminders() {
+            var container = document.getElementById('remindersList');
+            var now = new Date();
+            var sorted = reminders.filter(function(r) { return !r.completed; }).sort(function(a,b) { return new Date(a.dateTime) - new Date(b.dateTime); });
+            if (sorted.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔔</div><h3>אין תזכורות</h3></div>'; return; }
+            var html = '';
+            for (var i = 0; i < sorted.length; i++) {
+                var r = sorted[i];
+                var rd = new Date(r.dateTime); 
+                var overdue = rd < now;
+                html += '<div class="reminder-item ' + (overdue ? 'overdue' : '') + '">';
+                html += '<div class="reminder-icon">' + (overdue ? '⚠️' : '⏰') + '</div>';
+                html += '<div class="reminder-content"><div class="reminder-title">' + r.title + '</div>';
+                html += '<div class="reminder-meta">' + formatDateTime(r.dateTime) + (r.ticketId ? ' • ' + r.ticketId : '') + '</div></div>';
+                html += '<div class="reminder-actions">';
+                html += '<button class="btn btn-sm btn-outline" onclick="sendReminderEmail(\'' + r.id + '\')">📧 שלח</button>';
+                html += '<button class="btn btn-sm btn-success" onclick="completeReminder(\'' + r.id + '\')">✓ סמן כטופל</button>';
+                html += '<button class="btn-delete" data-delete-reminder="' + r.id + '">✕</button>';
+                html += '</div></div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function renderContacts() {
+            var grid = document.getElementById('contactsGrid');
+            if (contacts.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><h3>אין אנשי קשר</h3><p>הוסף איש קשר חדש</p></div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < contacts.length; i++) {
+                var c = contacts[i];
+                html += '<div class="contact-card" data-contact-card="' + c.id + '">';
+                html += '<button class="btn-delete contact-delete" data-delete-contact="' + c.id + '" title="מחק">✕</button>';
+                html += '<div class="contact-avatar">' + getInitials(c.name) + '</div>';
+                html += '<div class="contact-info">';
+                html += '<h4>' + c.name + '</h4>';
+                html += '<p>' + c.role + (c.category ? ' • ' + c.category : '') + '</p>';
+                html += '<span style="color: var(--primary)">' + c.phone + '</span>';
+                html += '</div></div>';
+            }
+            grid.innerHTML = html;
+        }
+
+        function renderHistory() {
+            var tbody = document.getElementById('historyTableBody');
+            var closed = tickets.filter(function(t) { return t.status === 'closed'; });
+            var from = document.getElementById('historyFrom').value;
+            var to = document.getElementById('historyTo').value;
+            if (from) closed = closed.filter(function(t) { return new Date(t.closedAt) >= new Date(from); });
+            if (to) closed = closed.filter(function(t) { return new Date(t.closedAt) <= new Date(to+'T23:59:59'); });
+            closed.sort(function(a,b) { return new Date(b.closedAt) - new Date(a.closedAt); });
+            if (closed.length === 0) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><h3>אין היסטוריה</h3></div></td></tr>'; return; }
+            var html = '';
+            for (var i = 0; i < closed.length; i++) {
+                var t = closed[i];
+                var diff = Math.round((new Date(t.closedAt) - new Date(t.createdAt)) / 3600000);
+                html += '<tr>';
+                html += '<td><span class="ticket-id">' + t.id + '</span></td>';
+                html += '<td>' + t.subject + '</td>';
+                html += '<td>' + t.requesterName + '</td>';
+                html += '<td>' + formatDate(t.createdAt) + '</td>';
+                html += '<td>' + formatDate(t.closedAt) + '</td>';
+                html += '<td>' + (diff < 24 ? diff + ' שעות' : Math.round(diff/24) + ' ימים') + '</td>';
+                html += '<td><div class="action-buttons">';
+                html += '<button class="btn btn-sm btn-outline" onclick="openTicketModal(\'' + t.id + '\')">צפייה</button>';
+                html += '<button class="btn-delete" data-delete-history="' + t.id + '" title="מחק">✕</button>';
+                html += '</div></td>';
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function filterHistory() { renderHistory(); }
+
+        function submitTicket() {
+            const requesterName = document.getElementById('requesterName').value.trim();
+            let department = document.getElementById('department').value;
+            const departmentOther = document.getElementById('departmentOther').value.trim();
+            if (department === 'אחר' && departmentOther) department = departmentOther;
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value.trim();
+
+            if (!requesterName || !department || !phone || !email || !subject || !category || !description) {
+                showToast('error', 'נא למלא את כל השדות המסומנים');
+                return;
+            }
+            if (document.getElementById('department').value === 'אחר' && !departmentOther) {
+                showToast('error', 'נא להזין שם מחלקה');
+                return;
+            }
+
+            ticketCounter++;
+            const ticket = {
+                id: settings.ticketPrefix + '-' + ticketCounter,
+                requesterName: requesterName,
+                department: department,
+                phone: phone,
+                email: email,
+                subject: subject,
+                category: category,
+                priority: document.getElementById('priority').value,
+                assignee: document.getElementById('assignee').value,
+                description: description,
+                status: 'open',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                timeline: [{type:'created',author:'מערכת',text:'קריאה נפתחה',timestamp:new Date().toISOString()}]
+            };
+
+            const rem = document.getElementById('reminder').value;
+            if (rem) { 
+                reminders.push({id:'r'+Date.now(),title:'מעקב: '+ticket.subject,dateTime:rem,ticketId:ticket.id,completed:false}); 
+                saveReminders(); 
+            }
+
+            tickets.push(ticket);
+            saveTickets();
+            localStorage.setItem('hd_counter', ticketCounter);
+            showToast('success', 'קריאה נפתחה בהצלחה!', ticket.id);
+            document.getElementById('newTicketForm').reset();
+            document.getElementById('departmentOther').style.display = 'none';
+            renderAll();
+            
+            // Switch to tickets tab - find the correct tab
+            const tabs = document.querySelectorAll('.nav-tab');
+            const ticketsTab = Array.from(tabs).find(tab => tab.textContent.includes('קריאות'));
+            if (ticketsTab) {
+                showSection('tickets', ticketsTab);
+            }
+        }
+
+        function sendEmailToUser() {
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value || 'קריאה חדשה';
+            if (!email) {
+                showToast('error', 'נא להזין כתובת מייל');
+                return;
+            }
+            const body = `שלום,\n\nקריאתך התקבלה במערכת.\nנושא: ${subject}\n\nנציג יחזור אליך בהקדם.\n\nבברכה,\nמחלקת IT`;
+            window.location.href = `mailto:${email}?subject=אישור קבלת קריאה - ${subject}&body=${encodeURIComponent(body)}`;
+        }
+
+        function openTicketModal(id) {
+            currentTicketId = id;
+            const t = tickets.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('modalTicketId').textContent = 'קריאה ' + t.id;
+            document.getElementById('ticketModalBody').innerHTML = 
+                '<div class="ticket-meta"><span>👤 ' + t.requesterName + '</span><span>🏢 ' + t.department + '</span><span>📞 <a href="tel:' + t.phone + '">' + t.phone + '</a></span><span>📧 ' + (t.email || '') + '</span><span>📅 ' + formatDateTime(t.createdAt) + '</span></div>' +
+                '<div class="form-grid" style="margin-bottom:1.5rem">' +
+                    '<div class="form-group"><label class="form-label">סטטוס</label><select class="form-select" id="editStatus"><option value="open"' + (t.status==='open'?' selected':'') + '>פתוח</option><option value="progress"' + (t.status==='progress'?' selected':'') + '>בטיפול</option><option value="resolved"' + (t.status==='resolved'?' selected':'') + '>טופל</option><option value="closed"' + (t.status==='closed'?' selected':'') + '>סגור</option></select></div>' +
+                    '<div class="form-group"><label class="form-label">עדיפות</label><select class="form-select" id="editPriority"><option value="low"' + (t.priority==='low'?' selected':'') + '>נמוך</option><option value="medium"' + (t.priority==='medium'?' selected':'') + '>בינוני</option><option value="high"' + (t.priority==='high'?' selected':'') + '>גבוה</option><option value="critical"' + (t.priority==='critical'?' selected':'') + '>קריטי</option></select></div>' +
+                    '<div class="form-group"><label class="form-label">הקצאה</label><select class="form-select" id="editAssignee"><option value="">לא הוקצה</option>' + contacts.map(c => '<option value="' + c.name + '"' + (t.assignee===c.name?' selected':'') + '>' + c.name + '</option>').join('') + '</select></div>' +
+                '</div>' +
+                '<div class="detail-section"><h3>📝 תיאור</h3><div class="detail-content">' + t.description + '</div></div>' +
+                '<div class="detail-section"><h3>💬 הערה חדשה</h3><textarea class="form-textarea" id="newComment" rows="3"></textarea></div>' +
+                '<div class="detail-section"><h3>📜 היסטוריה</h3><div class="timeline">' + (t.timeline||[]).slice().reverse().map(i => '<div class="timeline-item ' + i.type + '"><div class="timeline-content"><div class="timeline-header"><span class="timeline-author">' + i.author + '</span><span class="timeline-date">' + formatDateTime(i.timestamp) + '</span></div><div class="timeline-text">' + i.text + '</div></div></div>').join('') + '</div></div>';
+            document.getElementById('ticketModal').classList.add('active');
+        }
+
+        function saveTicketChanges() {
+            const t = tickets.find(x => x.id === currentTicketId);
+            if (!t) return;
+            const newStatus = document.getElementById('editStatus').value;
+            const newPriority = document.getElementById('editPriority').value;
+            const newAssignee = document.getElementById('editAssignee').value;
+            const comment = document.getElementById('newComment').value;
+            const changes = [];
+            if (t.status !== newStatus) { changes.push('סטטוס: '+getStatusLabel(newStatus)); t.status = newStatus; if(newStatus==='closed') t.closedAt = new Date().toISOString(); }
+            if (t.priority !== newPriority) { changes.push('עדיפות: '+getPriorityLabel(newPriority)); t.priority = newPriority; }
+            if (t.assignee !== newAssignee) { changes.push('הקצאה: '+(newAssignee||'לא הוקצה')); t.assignee = newAssignee; }
+            if (changes.length) t.timeline.push({type:'status',author:'מערכת',text:changes.join(', '),timestamp:new Date().toISOString()});
+            if (comment.trim()) t.timeline.push({type:'comment',author:'טכנאי',text:comment,timestamp:new Date().toISOString()});
+            t.updatedAt = new Date().toISOString();
+            saveTickets();
+            closeModal('ticketModal');
+            renderAll();
+            showToast('success', 'הקריאה עודכנה');
+        }
+
+        function openAddReminderModal() {
+            document.getElementById('reminderTitle').value = '';
+            document.getElementById('reminderDateTime').value = '';
+            document.getElementById('reminderNotes').value = '';
+            document.getElementById('reminderTicket').innerHTML = '<option value="">ללא</option>' + tickets.filter(t=>t.status!=='closed').map(t=>`<option value="${t.id}">${t.id}</option>`).join('');
+            document.getElementById('reminderModal').classList.add('active');
+        }
+
+        function saveReminder() {
+            const title = document.getElementById('reminderTitle').value;
+            const dt = document.getElementById('reminderDateTime').value;
+            if (!title || !dt) { showToast('error','מלא שדות'); return; }
+            reminders.push({id:'r'+Date.now(),title,dateTime:dt,ticketId:document.getElementById('reminderTicket').value,notes:document.getElementById('reminderNotes').value,completed:false});
+            saveReminders();
+            closeModal('reminderModal');
+            renderReminders();
+            updateStats();
+            showToast('success','תזכורת נוספה');
+        }
+
+        function completeReminder(id) { const r = reminders.find(x=>x.id===id); if(r){r.completed=true; saveReminders(); renderReminders(); updateStats();} }
+
+        function openAddContactModal() {
+            ['contactName','contactRole','contactPhone','contactEmail','contactCategoryOther'].forEach(id=>document.getElementById(id).value='');
+            document.getElementById('contactCategory').value = '';
+            document.getElementById('contactCategoryOther').style.display = 'none';
+            document.getElementById('contactModal').classList.add('active');
+        }
+
+        function saveContact() {
+            const name = document.getElementById('contactName').value;
+            const role = document.getElementById('contactRole').value;
+            var category = document.getElementById('contactCategory').value;
+            const phone = document.getElementById('contactPhone').value;
+            
+            // If "אחר" selected, use the custom category
+            if (category === 'אחר') {
+                const customCategory = document.getElementById('contactCategoryOther').value.trim();
+                if (!customCategory) {
+                    showToast('error', 'נא למלא את הקטגוריה המותאמת אישית');
+                    return;
+                }
+                category = customCategory;
+            }
+            
+            if (!name||!role||!category||!phone) { 
+                showToast('error','נא למלא את כל השדות'); 
+                return; 
+            }
+            
+            contacts.push({
+                id:'c'+Date.now(),
+                name,
+                role,
+                category,
+                phone,
+                email:document.getElementById('contactEmail').value
+            });
+            saveContacts();
+            closeModal('contactModal');
+            renderContacts();
+            populateAssigneeDropdown();
+            showToast('success','איש קשר נוסף');
+        }
+
+        function openContactActions(id) {
+            const contact = contacts.find(c => c.id === id);
+            if (!contact) return;
+            currentContactForAction = contact;
+            document.getElementById('contactActionName').textContent = contact.name;
+            document.getElementById('contactActionsModal').classList.add('active');
+        }
+
+        function contactAction(action) {
+            if (!currentContactForAction) return;
+            const phone = currentContactForAction.phone.replace(/-/g, '');
+            const email = currentContactForAction.email;
+            
+            switch(action) {
+                case 'call':
+                    window.location.href = 'tel:' + phone;
+                    break;
+                case 'whatsapp':
+                    window.open('https://wa.me/972' + phone.substring(1), '_blank');
+                    break;
+                case 'email':
+                    if (email) {
+                        window.location.href = 'mailto:' + email;
+                    } else {
+                        showToast('error', 'אין כתובת מייל לאיש קשר זה');
+                    }
+                    break;
+                case 'sms':
+                    window.location.href = 'sms:' + phone;
+                    break;
+            }
+            closeModal('contactActionsModal');
+        }
+
+        function populateAssigneeDropdown() {
+            document.getElementById('assignee').innerHTML = '<option value="">לא הוקצה</option>' + technicians.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+        }
+
+        function openAddTechnicianModal() {
+            document.getElementById('techName').value = '';
+            document.getElementById('techRole').value = '';
+            document.getElementById('techPhone').value = '';
+            document.getElementById('techEmail').value = '';
+            document.getElementById('techSpecialty').value = '';
+            document.getElementById('technicianModal').classList.add('active');
+        }
+
+        function saveTechnician() {
+            const name = document.getElementById('techName').value.trim();
+            const role = document.getElementById('techRole').value.trim() || 'טכנאי';
+            const phone = document.getElementById('techPhone').value.trim();
+            const email = document.getElementById('techEmail').value.trim();
+            const specialty = document.getElementById('techSpecialty').value.trim();
+            
+            if (!name || !phone || !email) {
+                showToast('error', 'נא למלא שם, טלפון ומייל');
+                return;
+            }
+            
+            technicians.push({
+                id: 't' + Date.now(),
+                name: name,
+                role: role,
+                phone: phone,
+                email: email,
+                specialty: specialty
+            });
+            
+            saveTechnicians();
+            closeModal('technicianModal');
+            renderTechnicians();
+            populateAssigneeDropdown();
+            showToast('success', 'טכנאי נוסף בהצלחה');
+        }
+
+        var assigningTicketId = null;
+
+        function saveAssignment() {
+            if (!assigningTicketId) return;
+            
+            var ticket = tickets.find(function(t) { return t.id === assigningTicketId; });
+            if (!ticket) return;
+            
+            var newAssignee = document.getElementById('assignTechnicianSelect').value;
+            
+            if (ticket.assignee !== newAssignee) {
+                ticket.assignee = newAssignee;
+                ticket.updatedAt = new Date().toISOString();
+                ticket.timeline.push({
+                    type: 'status',
+                    author: 'מערכת',
+                    text: 'הוקצה לטכנאי: ' + (newAssignee || 'לא הוקצה'),
+                    timestamp: new Date().toISOString()
+                });
+                saveTickets();
+                renderTickets();
+                showToast('success', 'הטכנאי הוקצה בהצלחה');
+            }
+            
+            closeModal('assignModal');
+            assigningTicketId = null;
+        }
+
+        function renderTechnicians() {
+            var grid = document.getElementById('techniciansGrid');
+            if (technicians.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👨‍💻</div><h3>אין טכנאים</h3><p>הוסף טכנאי חדש כדי להקצות לו קריאות</p></div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < technicians.length; i++) {
+                var t = technicians[i];
+                html += '<div class="contact-card">';
+                html += '<button class="btn-delete contact-delete" data-delete-technician="' + t.id + '" title="מחק">✕</button>';
+                html += '<div class="contact-avatar" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white;">' + getInitials(t.name) + '</div>';
+                html += '<div class="contact-info">';
+                html += '<h4>' + t.name + '</h4>';
+                html += '<p>' + (t.role || 'טכנאי') + (t.specialty ? ' • ' + t.specialty : '') + '</p>';
+                html += '<span style="color: var(--primary)">' + t.phone + '</span>';
+                html += '<div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">' + t.email + '</div>';
+                html += '</div></div>';
+            }
+            grid.innerHTML = html;
+        }
+
+        function saveTechnicians() {
+            localStorage.setItem('hd_technicians', JSON.stringify(technicians));
+        }
+
+        function loadSettings() {
+            document.getElementById('orgName').value = settings.orgName || 'אגף המיחשוב';
+            document.getElementById('ticketPrefix').value = settings.ticketPrefix || 'IT';
+            document.getElementById('systemEmail').value = settings.systemEmail || '';
+            document.getElementById('helpdeskEmail').value = settings.helpdeskEmail || '';
+            document.getElementById('reminderHours').value = settings.reminderHours || 168;
+            
+        }
+
+        function saveSettings() {
+            settings = {
+                orgName: document.getElementById('orgName').value,
+                ticketPrefix: document.getElementById('ticketPrefix').value,
+                systemEmail: document.getElementById('systemEmail').value,
+                helpdeskEmail: document.getElementById('helpdeskEmail').value,
+                reminderHours: parseInt(document.getElementById('reminderHours').value) || 168
+            };
+            localStorage.setItem('hd_settings', JSON.stringify(settings));
+            showToast('success','נשמר');
+        }
+
+        // History export functions
+        function exportHistoryToExcel() {
+            const closed = tickets.filter(t => t.status === 'closed');
+            if (closed.length === 0) {
+                showToast('error', 'אין נתונים לייצוא');
+                return;
+            }
+            
+            let csv = '\uFEFF'; // BOM for Hebrew
+            csv += 'מספר קריאה,נושא,פותח הקריאה,מחלקה,קטגוריה,תאריך פתיחה,תאריך סגירה,זמן טיפול\n';
+            
+            closed.forEach(t => {
+                const diff = Math.round((new Date(t.closedAt) - new Date(t.createdAt)) / 3600000);
+                const timeStr = diff < 24 ? diff + ' שעות' : Math.round(diff/24) + ' ימים';
+                csv += `"${t.id}","${t.subject}","${t.requesterName}","${t.department}","${getCategoryLabel(t.category)}","${formatDate(t.createdAt)}","${formatDate(t.closedAt)}","${timeStr}"\n`;
+            });
+            
+            downloadFile(csv, 'history_' + new Date().toISOString().split('T')[0] + '.csv', 'text/csv;charset=utf-8');
+            showToast('success', 'הקובץ הורד בהצלחה');
+        }
+
+        function saveHistoryAsFile() {
+            const closed = tickets.filter(t => t.status === 'closed');
+            if (closed.length === 0) {
+                showToast('error', 'אין נתונים לשמירה');
+                return;
+            }
+            downloadFile(JSON.stringify(closed, null, 2), 'history_backup_' + new Date().toISOString().split('T')[0] + '.json', 'application/json');
+            showToast('success', 'הקובץ נשמר');
+        }
+
+        function sendHistoryByEmail() {
+            const closed = tickets.filter(t => t.status === 'closed');
+            if (closed.length === 0) {
+                showToast('error', 'אין נתונים לשליחה');
+                return;
+            }
+            
+            let body = 'היסטוריית קריאות סגורות:\n\n';
+            closed.slice(0, 20).forEach(t => {
+                body += `${t.id} - ${t.subject} (${t.requesterName}) - נסגר: ${formatDate(t.closedAt)}\n`;
+            });
+            if (closed.length > 20) body += `\n... ועוד ${closed.length - 20} קריאות`;
+            
+            window.open('mailto:?subject=' + encodeURIComponent('היסטוריית קריאות - ' + settings.orgName) + '&body=' + encodeURIComponent(body));
+        }
+
+        function exportAllData() {
+            const data = { 
+                tickets, 
+                contacts, 
+                reminders, 
+                settings, 
+                technicianEmails,
+                ticketCounter,
+                exportDate: new Date().toISOString()
+            };
+            downloadFile(JSON.stringify(data, null, 2), 'helpdesk_backup_' + new Date().toISOString().split('T')[0] + '.json', 'application/json');
+            showToast('success', 'גיבוי נשמר בהצלחה');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file'; 
+            input.accept = '.json';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if(data.tickets) tickets = data.tickets;
+                        if(data.contacts) contacts = data.contacts;
+                        if(data.reminders) reminders = data.reminders;
+                        if(data.settings) settings = data.settings;
+                        if(data.technicianEmails) technicianEmails = data.technicianEmails;
+                        if(data.ticketCounter) ticketCounter = data.ticketCounter;
+                        saveAll(); 
+                        loadSettings(); 
+                        renderAll();
+                        
+                        showToast('success','נתונים יובאו בהצלחה');
+                    } catch(err) { 
+                        showToast('error','שגיאה בקריאת הקובץ'); 
+                    }
+                };
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], {type: type});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+
+
+
+
+
+
+        // Auto reminder for delayed tickets
+        function checkDelayedTickets() {
+            const now = new Date();
+            const hours = settings.reminderHours || 168; // Changed to 168 hours (1 week)
+            var overdueTickets = [];
+            
+            tickets.forEach(t => {
+                if (t.status === 'open' || t.status === 'progress') {
+                    const created = new Date(t.createdAt);
+                    const diffHours = (now - created) / (1000 * 60 * 60);
+                    
+                    if (diffHours >= hours) {
+                        overdueTickets.push({
+                            id: t.id,
+                            subject: t.subject,
+                            hours: Math.floor(diffHours),
+                            assignee: t.assignee || 'לא הוקצה'
+                        });
+                        
+                        if (!t.delayNotificationSent && t.email) {
+                            // Mark as sent and add timeline
+                            t.delayNotificationSent = true;
+                            t.timeline.push({
+                                type: 'status',
+                                author: 'מערכת',
+                                text: 'נשלחה הודעת עיכוב למשתמש',
+                                timestamp: now.toISOString()
+                            });
+                        }
+                    }
+                }
+            });
+            
+            // Show popup reminder if there are overdue tickets
+            if (overdueTickets.length > 0) {
+                var message = '🚨 התרעת תזכורת!\n\n';
+                message += overdueTickets.length + ' קריאות שנתקעו יותר משבוע:\n\n';
+                
+                overdueTickets.forEach(ticket => {
+                    var days = Math.floor(ticket.hours / 24);
+                    message += '• ' + ticket.id + ': ' + ticket.subject + '\n';
+                    message += '  נפתח לפני: ' + days + ' ימים\n';
+                    message += '  הוקצה ל: ' + ticket.assignee + '\n\n';
+                });
+                
+                message += 'האם לעבור ללשונית הקריאות?';
+                
+                if (confirm(message)) {
+                    // Switch to tickets tab
+                    showSection('tickets', document.querySelector('[onclick="showSection(\'tickets\', this)"]'));
+                }
+            }
+            
+            saveTickets();
+        }
+
+        function getInitials(name) { return name ? name.split(' ').map(n=>n[0]).join('').slice(0,2) : '??'; }
+        function formatDate(d) { return d ? new Date(d).toLocaleDateString('he-IL') : ''; }
+        function formatDateTime(d) { return d ? new Date(d).toLocaleDateString('he-IL')+' '+new Date(d).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) : ''; }
+        function getPriorityLabel(p) { return {critical:'🔴 קריטי',high:'🟠 גבוה',medium:'🟡 בינוני',low:'🟢 נמוך'}[p]||p; }
+        function getStatusLabel(s) { return {open:'פתוח',progress:'בטיפול',resolved:'טופל',closed:'סגור'}[s]||s; }
+        function getCategoryLabel(c) { return {hardware:'💻 חומרה',software:'📀 תוכנה',network:'🌐 רשת',security:'🔒 אבטחה',other:'📌 אחר'}[c]||c; }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function showToast(type, title, msg='') {
+            const toast = document.createElement('div');
+            toast.className = 'toast '+type;
+            toast.innerHTML = `<span style="font-size:1.25rem">${{success:'✅',error:'❌',warning:'⚠️'}[type]||'ℹ️'}</span><div><strong>${title}</strong>${msg?'<div style="font-size:0.85rem;color:var(--gray-500)">'+msg+'</div>':''}</div>`;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(()=>toast.remove(), 4000);
+        }
+
+        function saveTickets() { 
+            if (SCRIPT_URL) {
+                // For local storage - save every change
+                localStorage.setItem('hd_tickets', JSON.stringify(tickets));
+            } else {
+                localStorage.setItem('hd_tickets', JSON.stringify(tickets)); 
+            }
+        }
+        function saveContacts() { localStorage.setItem('hd_contacts', JSON.stringify(contacts)); }
+        function saveReminders() { localStorage.setItem('hd_reminders', JSON.stringify(reminders)); }
+        function saveAll() { 
+            saveTickets(); 
+            saveContacts(); 
+            saveReminders(); 
+            localStorage.setItem('hd_settings',JSON.stringify(settings)); 
+            localStorage.setItem('hd_counter',ticketCounter); 
+            localStorage.setItem('hd_tech_emails', JSON.stringify(technicianEmails));
+        }
+
+        function sendReminderEmail(id) {
+            const r = reminders.find(x => x.id === id);
+            if (!r) return;
+            let em = '';
+            if (r.ticketId) {
+                const t = tickets.find(x => x.id === r.ticketId);
+                if (t && t.email) em = t.email;
+            }
+            const subject = 'תזכורת: ' + r.title;
+            const body = 'שלום,\n\nזוהי תזכורת: ' + r.title + '\n\n' + (r.notes || '') + '\n\nמחלקת IT';
+            window.open('mailto:' + em + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body));
+            showToast('success', 'נפתח חלון מייל');
+        }
+
+        function updateEmailTemplate() {
+            const helpdeskEmailInput = document.getElementById('helpdeskEmail');
+            const displayElement = document.getElementById('displayHelpdeskEmail');
+            
+            if (helpdeskEmailInput && displayElement) {
+                const helpdeskEmail = helpdeskEmailInput.value || 'tickets@company.com';
+                displayElement.textContent = helpdeskEmail;
+            }
+        }
+
+        // API calls for local storage fallback
+        function apiCall(action, data) {
+            if (!SCRIPT_URL) {
+                console.log('No external storage configured, using localStorage');
+                return Promise.resolve({success: true});
+            }
+            
+            var params = new URLSearchParams();
+            params.append('action', action);
+            if (data) {
+                params.append('data', JSON.stringify(data));
+            }
+            
+            return fetch(SCRIPT_URL + '?' + params.toString(), {
+                method: 'POST'
+            })
+            .then(function(response) { return response.json(); })
+            .catch(function(error) {
+                console.error('API Error:', error);
+                return {error: error.toString()};
+            });
+        }
+        
+        function loadAllData() {
+            if (!SCRIPT_URL) {
+                return Promise.resolve();
+            }
+            
+            return apiCall('getAll').then(function(result) {
+                if (result && !result.error) {
+                    if (result.tickets) tickets = result.tickets;
+                    if (result.contacts) contacts = result.contacts;
+                    if (result.technicians) technicians = result.technicians;
+                    if (result.reminders) reminders = result.reminders;
+                    if (result.settings) settings = result.settings;
+                    console.log('נתונים נטענו מהמערכת:', {
+                        tickets: tickets.length,
+                        contacts: contacts.length,
+                        technicians: technicians.length,
+                        reminders: reminders.length
+                    });
+                }
+                return result;
+            });
+        }
+
+        function populateAssignModal(ticket) {
+            console.log('=== DEBUG: התחלת מילוי רשימה ===');
+            
+            var select = document.getElementById('assignTechnician');
+            if (!select) {
+                console.error('לא נמצא select element!');
+                return;
+            }
+            
+            // Clear completely
+            select.innerHTML = '';
+            
+            // Test 1: Add simple options manually
+            console.log('בדיקה 1: הוספת אופציות פשוטות');
+            select.innerHTML = '<option value="">לא הוקצה</option><option value="test">טכנאי בדיקה</option>';
+            console.log('אחרי הוספה ראשונה - innerHTML:', select.innerHTML);
+            console.log('אחרי הוספה ראשונה - options.length:', select.options.length);
+            
+            // Test 2: Add technicians if they exist  
+            if (technicians && technicians.length > 0) {
+                console.log('בדיקה 2: הוספת טכנאי אמיתי');
+                var tech = technicians[0]; // Take first technician
+                console.log('טכנאי ראשון:', tech);
+                
+                select.innerHTML += '<option value="' + tech.name + '">' + tech.name + ' (טכנאי)</option>';
+                console.log('אחרי הוספת טכנאי אמיתי - innerHTML:', select.innerHTML);
+                console.log('אחרי הוספת טכנאי אמיתי - options.length:', select.options.length);
+                
+                // Force visual refresh
+                select.style.display = 'none';
+                select.offsetHeight; // Force reflow
+                select.style.display = 'block';
+                
+                // Try to force browser to recognize the options
+                var event = new Event('change', { bubbles: true });
+                select.dispatchEvent(event);
+                
+                // Wait and check again
+                setTimeout(function() {
+                    console.log('אחרי 100ms - innerHTML:', select.innerHTML);
+                    console.log('אחרי 100ms - options.length:', select.options.length);
+                    
+                    // Force another refresh if needed
+                    if (select.options.length > 1) {
+                        console.log('✅ האופציות עדיין שם');
+                        
+                        // Manual fix - recreate select element if needed
+                        var parent = select.parentNode;
+                        var newSelect = select.cloneNode(false);
+                        newSelect.innerHTML = select.innerHTML;
+                        newSelect.id = select.id;
+                        newSelect.className = select.className;
+                        newSelect.style.cssText = select.style.cssText;
+                        
+                        parent.replaceChild(newSelect, select);
+                        console.log('✅ רשימה הוחלפה בכפילה');
+                    } else {
+                        console.error('❌ האופציות נעלמות! יש בעיה ב-DOM');
+                        alert('בעיה: האופציות נעלמות מהרשימה!');
+                    }
+                }, 100);
+                
+            } else {
+                console.log('אין טכנאים במערך');
+                select.innerHTML += '<option disabled>אין טכנאים</option>';
+            }
+            
+            console.log('=== סיום בדיקה ===');
+        }
+
+        function saveAssignment() {
+            const assignee = document.getElementById('assignTechnician').value;
+            const ticket = tickets.find(t => t.id === currentTicketId);
+            
+            if (ticket) {
+                const oldAssignee = ticket.assignee;
+                ticket.assignee = assignee;
+                ticket.updatedAt = new Date().toISOString();
+                
+                // Add to timeline
+                const text = assignee ? 'הוקצה ל: ' + assignee : 'ההקצאה בוטלה';
+                ticket.timeline.push({
+                    type: 'status',
+                    author: 'מערכת',
+                    text: text,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Save to local storage
+                saveTickets();
+                
+                if (assignee) {
+                    showToast('success', 'הוקצה ל' + assignee);
+                } else {
+                    showToast('success', 'ההקצאה בוטלה');
+                }
+                
+                renderTickets();
+                closeModal('assignModal');
+            }
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('active'); }));
+        document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active')); });
+
+        // ========== Simple Technician Assignment ==========
+        var selectedTechForAssignment = '';
+
+
+        // ========== Simple Working Assignment ==========
+        var currentAssignTicketId = '';
+        
+        
+        function saveAssignmentSimple() {
+            if (!currentAssignTicketId) return;
+            
+            const ticket = tickets.find(t => t.id === currentAssignTicketId);
+            if (!ticket) return;
+            
+            const selectedTech = document.getElementById('assignTechSelect').value;
+            ticket.assignee = selectedTech;
+            ticket.updatedAt = new Date().toISOString();
+            
+            // הוסף לזמן הטיפול
+            ticket.timeline.push({
+                type: 'status',
+                author: 'מערכת',
+                text: selectedTech ? 'הוקצה ל: ' + selectedTech : 'ההקצאה בוטלה',
+                timestamp: new Date().toISOString()
+            });
+            
+            // שמור 
+            saveTickets();
+            renderTickets();
+            closeModal('assignModal');
+            
+            // הודעה
+            showToast('success', selectedTech ? 'הוקצה ל' + selectedTech : 'ההקצאה בוטלה');
+            currentAssignTicketId = '';
+        }
+
+        // ========== Single Working Assignment Function ==========
+        function openAssignModal(ticketId) {
+            alert('הפונקציה עובדת! ID: ' + ticketId);
+            
+            currentAssignTicketId = ticketId;
+            const ticket = tickets.find(t => t.id === ticketId);
+            
+            // עדכן כותרת
+            document.getElementById('assignTicketId').textContent = ticketId + (ticket ? ' - ' + ticket.subject : '');
+            
+            // מלא רשימה
+            var select = document.getElementById('assignTechSelect');
+            select.innerHTML = '<option value="">לא הוקצה</option>';
+            
+            alert('יש ' + technicians.length + ' טכנאים');
+            
+            for (var i = 0; i < technicians.length; i++) {
+                var tech = technicians[i];
+                var option = document.createElement('option');
+                option.value = tech.name;
+                option.textContent = tech.name;
+                if (assigningTicketId) {
+                    var currentTicket = tickets.find(function(t) { return t.id === assigningTicketId; });
+                    if (currentTicket && currentTicket.assignee === tech.name) {
+                        option.selected = true;
+                    }
+                }
+                select.appendChild(option);
+            }
+            
+            // פתח את המודל
+            document.getElementById('assignModal').classList.add('active');
+        }
+
+        // ============================================
+        // 📋 Real Google Forms Integration  
+        // ============================================
+        
+        // מאזין לנתונים חדשים מ-Google Forms (via localStorage)
+        function checkForNewFormsData() {
+            const newTicketData = localStorage.getItem('newTicketFromForms');
+            
+            if (newTicketData) {
+                try {
+                    const { data, timestamp } = JSON.parse(newTicketData);
+                    
+                    // בדוק שהנתונים חדשים (לא יותר מ-5 דקות)
+                    if (Date.now() - timestamp < 300000) {
+                        console.log('📧 התקבלו נתונים חדשים מ-Google Forms:', data);
+                        
+                        // נקה את הנתונים מה-localStorage
+                        localStorage.removeItem('newTicketFromForms');
+                        
+                        // צור קריאה חדשה
+                        processNewFormsTicket(data);
+                    }
+                } catch (error) {
+                    console.error('שגיאה בעיבוד נתוני Google Forms:', error);
+                    localStorage.removeItem('newTicketFromForms'); // נקה גם במקרה של שגיאה
+                }
+            }
+        }
+        
+        function processNewFormsTicket(data) {
+            // המר נתוני Google Forms לפורמט המערכת
+            const ticket = {
+                id: 'IT' + ticketCounter.toString().padStart(4, '0'),
+                requesterName: data.name || 'לא צוין',
+                department: data.department || '',
+                phone: data.phone || '',
+                email: data.email || '',
+                subject: data.subject || 'פנייה מ-Google Forms',
+                description: data.description || '',
+                category: data.category || 'other',
+                priority: data.priority || 'medium',
+                status: 'new',
+                assignee: '',
+                createdAt: data.timestamp || new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                source: 'google_forms',
+                timeline: [{
+                    type: 'created',
+                    author: 'Google Forms',
+                    text: 'קריאה התקבלה מ-Google Forms',
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            
+            // הוסף לרשימת הקריאות
+            tickets.push(ticket);
+            ticketCounter++;
+            
+            // שמור
+            saveTickets();
+            localStorage.setItem('hd_counter', ticketCounter);
+            
+            // הצג התראה פשוטה עם צליל מערכת
+            showSimpleNotification(ticket);
+            
+            // הצג Toast
+            showToast('success', 'קריאה חדשה מ-Google Forms!', `מ-${ticket.requesterName}: ${ticket.subject}`);
+            
+            // עדכן UI
+            updateStats();
+            renderTickets();
+        }
+        
+        // הצגת התראות מערכת עם צלילים
+        function showSystemNotification(ticket) {
+            if (Notification.permission !== 'granted') {
+                return;
+            }
+            
+            // צלילים שונים לפי עדיפות
+            const soundsByPriority = {
+                'critical': '🚨',
+                'high': '⚠️', 
+                'medium': '🔔',
+                'low': '💬'
+            };
+            
+            const icon = soundsByPriority[ticket.priority] || '🔔';
+            const priorityText = getPriorityText(ticket.priority);
+            
+            // התראה עם הגדרות מתקדמות
+            const notification = new Notification(`${icon} קריאה ${priorityText} חדשה!`, {
+                body: `👤 ${ticket.requesterName}\n📧 ${ticket.subject}\n🏢 ${ticket.department}\n📞 ${ticket.phone}`,
+                icon: '/favicon.ico', // אייקון האתר
+                badge: '/badge.png', // תמונה קטנה להתראה
+                tag: `ticket-${ticket.id}`, // למניעת כפילויות
+                requireInteraction: notificationSettings.requireInteraction, // לפי הגדרות משתמש
+                silent: !notificationSettings.soundEnabled, // השתמש בצליל לפי הגדרות
+                timestamp: Date.now(),
+                data: {
+                    ticketId: ticket.id,
+                    priority: ticket.priority,
+                    url: window.location.href + '#ticket-' + ticket.id
+                },
+                actions: [ // כפתורי פעולה מהירה (Chrome/Edge)
+                    {
+                        action: 'view',
+                        title: '👁️ צפה בקריאה'
+                    },
+                    {
+                        action: 'assign',
+                        title: '👨‍💻 הקצה טכנאי'
+                    }
+                ]
+            });
+            
+            // טיפול בלחיצה על ההתראה
+            notification.onclick = function() {
+                window.focus(); // הבא את החלון לחזית
+                showTab('tickets'); // עבור ללשונית קריאות
+                notification.close(); // סגור את ההתראה
+                
+                // הדגש את הקריאה החדשה
+                setTimeout(() => {
+                    highlightNewTicket(ticket.id);
+                }, 500);
+            };
+            
+            // סגירה אוטומטית לפי הגדרות משתמש (אלא אם critical ו-requireInteraction)
+            if (ticket.priority !== 'critical' && !notificationSettings.requireInteraction) {
+                setTimeout(() => {
+                    notification.close();
+                }, notificationSettings.duration * 1000);
+            }
+            
+            // נגן צליל נוסף בעדיפות גבוהה (אם מופעל בהגדרות)
+            if (notificationSettings.urgentSoundEnabled && 
+                (ticket.priority === 'critical' || ticket.priority === 'high')) {
+                playUrgentAlert();
+            }
+        }
+        
+        // נגינת צליל דחוף נוסף
+        function playUrgentAlert() {
+            // צור צליל סינתטי דחוף
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // סדרת ביפים דחופה
+                const frequencies = [800, 1000, 800, 1200]; // תדרים שונים
+                const duration = 200; // כל ביפ 200ms
+                
+                frequencies.forEach((freq, index) => {
+                    setTimeout(() => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration/1000);
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + duration/1000);
+                    }, index * 250); // רווח בין ביפים
+                });
+                
+            } catch (error) {
+                console.log('לא ניתן לנגן צליל דחוף:', error);
+            }
+        }
+        
+        // קבלת טקסט עדיפות בעברית
+        function getPriorityText(priority) {
+            const priorityTexts = {
+                'critical': 'קריטית 🚨',
+                'high': 'גבוהה ⚠️',
+                'medium': 'בינונית 🔔', 
+                'low': 'נמוכה 💬'
+            };
+            return priorityTexts[priority] || 'רגילה';
+        }
+        
+        // הדגשת קריאה חדשה ברשימה
+        function highlightNewTicket(ticketId) {
+            const ticketRows = document.querySelectorAll('#ticketsTableBody tr');
+            ticketRows.forEach(row => {
+                if (row.textContent.includes(ticketId)) {
+                    row.style.background = 'linear-gradient(45deg, #fff3cd, #f8f9fa)';
+                    row.style.border = '2px solid #ffc107';
+                    row.style.animation = 'pulse 3s ease-in-out';
+                    
+                    // הסר הדגשה אחרי 10 שניות
+                    setTimeout(() => {
+                        row.style.background = '';
+                        row.style.border = '';
+                        row.style.animation = '';
+                    }, 10000);
+                }
+            });
+        }
+        
+        // הדגשת לשונית המיילים כשמגיעה קריאה חדשה
+        function highlightEmailTab() {
+            const emailTab = document.querySelector('button[onclick*="email-tickets"]');
+            if (emailTab) {
+                emailTab.style.background = 'linear-gradient(45deg, #ff6b6b, #4ecdc4)';
+                emailTab.style.color = 'white';
+                emailTab.style.animation = 'pulse 2s infinite';
+                
+                // הסר ההדגשה אחרי 10 שניות
+                setTimeout(() => {
+                    emailTab.style.background = '';
+                    emailTab.style.color = '';
+                    emailTab.style.animation = '';
+                }, 10000);
+            }
+        }
+        
+        // ============================================
+        // 🔔 Simple Notification Functions
+        // ============================================
+        function requestNotifications() {
+            const statusEl = document.getElementById('notificationStatus');
+            
+            if (!('Notification' in window)) {
+                statusEl.innerHTML = '❌ הדפדפן לא תומך בהתראות';
+                statusEl.style.background = '#ffebee';
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                statusEl.innerHTML = '✅ התראות מופעלות וכוללות צליל מערכת';
+                statusEl.style.background = '#e8f5e8';
+                return;
+            }
+
+            statusEl.innerHTML = '⏳ מבקש אישור להתראות...';
+            statusEl.style.background = '#fff3e0';
+
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    statusEl.innerHTML = '✅ התראות הופעלו! תקבלו הודעה עם צליל כשמגיעה קריאה חדשה';
+                    statusEl.style.background = '#e8f5e8';
+                    
+                    // הודעת בדיקה
+                    new Notification('🎉 התראות פועלות!', {
+                        body: 'תקבלו התראה כשמגיעה קריאה חדשה מ-Google Forms',
+                        icon: '🔔'
+                    });
+                } else {
+                    statusEl.innerHTML = '❌ התראות נדחו. נסו שוב או הפעילו ידנית בהגדרות הדפדפן';
+                    statusEl.style.background = '#ffebee';
+                }
+            });
+        }
+
+        function testSystemNotification() {
+            if (Notification.permission !== 'granted') {
+                showToast('warning', 'תחילה אפשרו התראות', '');
+                requestNotifications();
+                return;
+            }
+
+            // התראת בדיקה פשוטה עם צליל מערכת
+            new Notification('🧪 בדיקת מערכת', {
+                body: 'זוהי התראת בדיקה. שמעתם צליל?',
+                icon: '🖥️',
+                requireInteraction: false
+            });
+
+            showToast('success', 'התראת בדיקה נשלחה', 'שמעתם צליל?');
+        }
+        
+        // ============================================
+        // 📧 פונקציות שיתוף טופס
+        // ============================================
+        function shareFormByEmail() {
+            const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfPG-sw7LNKrThP99gZfLKMDD1AKTsXqaBO0A9MJDJ4C3-oyw/viewform?usp=header';
+            const subject = 'קישור לפתיחת קריאה במערכת IT';
+            const body = `שלום,\n\nלפתיחת קריאה חדשה במערכת IT, אנא מלאו את הטופס הבא:\n\n${formUrl}\n\nתודה!`;
+            
+            window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+            showToast('success', 'מייל נפתח', 'שלחו לצוות');
+        }
+        
+        function shareFormByWhatsApp() {
+            const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfPG-sw7LNKrThP99gZfLKMDD1AKTsXqaBO0A9MJDJ4C3-oyw/viewform?usp=header';
+            const message = encodeURIComponent(`שלום! לפתיחת קריאה במערכת IT, אנא מלאו את הטופס: ${formUrl}`);
+            const whatsappUrl = `https://wa.me/?text=${message}`;
+            
+            window.open(whatsappUrl, '_blank');
+            showToast('success', 'ווטסאפ נפתח', 'שתפו את הקישור');
+        }
+        
+        // פונקציה לסימולציה של קבלת קריאה חדשה מ-Google Forms
+        function simulateNewTicket() {
+            // יצירת נתוני דמה כאילו הגיעו מ-Google Forms
+            const sampleData = {
+                name: 'דני כהן',
+                email: 'danny.cohen@company.com',
+                phone: '050-1234567',
+                department: 'משאבי אנוש',
+                subject: 'בעיה בהתחברות למערכת השכר',
+                description: 'לא מצליח להתחבר למערכת השכר כבר שעתיים. מקבל הודעת שגיאה "סיסמה שגויה" למרות שהסיסמה נכונה.',
+                category: 'access',
+                priority: 'high',
+                timestamp: new Date().toISOString(),
+                source: 'google_forms'
+            };
+            
+            // שמירה ב-localStorage כמו שGoogle Apps Script עושה
+            localStorage.setItem('newTicketFromForms', JSON.stringify({
+                data: sampleData,
+                timestamp: Date.now()
+            }));
+            
+            showToast('info', 'סימולציה נשלחה', 'עכשיו המערכת תבדוק ותמצא את הנתונים...');
+            
+            // בדיקה מיידית (במקום לחכות 5 שניות)
+            setTimeout(() => {
+                checkForNewFormsData();
+            }, 1000);
+        }
+
+        function showSimpleNotification(ticket) {
+            if (Notification.permission !== 'granted') {
+                return;
+            }
+
+            const priorityIcons = {
+                'critical': '🚨',
+                'high': '⚠️',
+                'medium': '📧',
+                'low': '💬'
+            };
+
+            const icon = priorityIcons[ticket.priority] || '📧';
+
+            new Notification(`${icon} קריאה חדשה מ-Google Forms`, {
+                body: `👤 ${ticket.requesterName}\n📧 ${ticket.subject}\n🏢 ${ticket.department}`,
+                icon: '🔔',
+                requireInteraction: true,
+                tag: 'new-ticket'
+            });
+        }
+        
+        // API Endpoint לקבלת נתונים מ-Google Apps Script
+        window.receiveTicketFromGoogleForms = function(ticketData) {
+            console.log('📧 התקבלו נתונים ישירות מ-Google Forms:', ticketData);
+            processNewFormsTicket(ticketData);
+        };
+
+    </script>
+</body>
+</html>
