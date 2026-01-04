@@ -359,7 +359,7 @@
             <div class="card">
                 <div class="card-header"><h2 class="card-title">➕ פתיחת קריאה חדשה</h2></div>
                 <div class="card-body">
-                    <form id="newTicketForm">
+                    <form id="newTicketForm" novalidate>
                         <div class="form-grid">
                             <div class="form-group"><label class="form-label">שם פותח הקריאה <span class="required">*</span></label><input type="text" class="form-input" id="requesterName" required></div>
                             <div class="form-group"><label class="form-label">מחלקה <span class="required">*</span></label><select class="form-select" id="department" required onchange="if(this.value==='אחר'){document.getElementById('departmentOther').style.display='block'}else{document.getElementById('departmentOther').style.display='none';document.getElementById('departmentOther').value=''}"><option value="">בחר...</option><option value="הנהלה">הנהלה</option><option value="כספים">כספים</option><option value="משאבי אנוש">משאבי אנוש</option><option value="שיווק">שיווק</option><option value="מכירות">מכירות</option><option value="תפעול">תפעול</option><option value="פיתוח">פיתוח</option><option value="אחר">אחר</option></select><input type="text" class="form-input" id="departmentOther" placeholder="הזן שם מחלקה..." style="display:none;margin-top:0.5rem"></div>
@@ -507,7 +507,7 @@
                         <div class="form-group"><label class="form-label">קידומת קריאה</label><input type="text" class="form-input" id="ticketPrefix" value="IT" onchange="saveSettings()"></div>
                         <div class="form-group"><label class="form-label">מייל מערכת</label><input type="email" class="form-input" id="systemEmail" placeholder="helpdesk@company.com" onchange="saveSettings()"></div>
                         <div class="form-group"><label class="form-label">מייל לקבלת קריאות</label><input type="email" class="form-input" id="helpdeskEmail" placeholder="tickets@company.com" onchange="saveSettings();"></div>
-                        <div class="form-group"><label class="form-label">זמן לשליחת תזכורת (שעות)</label><input type="number" class="form-input" id="reminderHours" value="168" onchange="saveSettings()"></div>
+                        <div class="form-group"><label class="form-label">זמן לשליחת תזכורת (שעות)</label><input type="number" class="form-input" id="reminderHours" value="168" min="1" onchange="saveSettings()"></div>
                     </div>
                     
                     <div class="info-box" style="margin-top: 2rem;">
