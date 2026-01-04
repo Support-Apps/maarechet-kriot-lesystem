@@ -352,9 +352,14 @@
                     <button type="submit" class="login-button">
                         🔐 התחבר למערכת
                     </button>
-                    <button type="button" class="login-button" onclick="showChangePassword()" style="background: var(--warning); margin-top: 0.5rem;">
-                        🔑 שנה סיסמה
-                    </button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button type="button" class="login-button" onclick="showForgotPassword()" style="background: var(--warning); font-size: 0.9rem;">
+                            🤔 שכחתי סיסמה
+                        </button>
+                        <button type="button" class="login-button" onclick="showForgotUsername()" style="background: var(--success); font-size: 0.9rem;">
+                            📛 שכחתי שם משתמש
+                        </button>
+                    </div>
                 </form>
                 
                 <div id="loginError" class="login-error">
@@ -371,11 +376,105 @@
                         <input type="password" class="login-input" id="confirmPassword" placeholder="אשר סיסמה חדשה" required style="margin-bottom: 0.5rem;">
                         <div style="display: flex; gap: 0.5rem;">
                             <button type="submit" class="login-button" style="background: var(--success); flex: 1;">💾 שמור</button>
-                            <button type="button" class="login-button" onclick="hideChangePassword()" style="background: var(--gray-500); flex: 1;">❌ ביטול</button>
+                            <button type="button" class="login-button" onclick="hideAllForms()" style="background: var(--gray-500); flex: 1;">❌ ביטול</button>
                         </div>
                     </form>
-                    <div id="changePasswordError" class="login-error" style="margin-top: 0.5rem;">
+                    <div id="changePasswordError" class="login-error" style="margin-top: 0.5rem;"></div>
+                </div>
+
+                <!-- Create New User Form -->
+                <div id="createUserForm" style="display: none;">
+                    <h3 style="margin: 1rem 0; color: var(--gray-700);">👤 יצירת משתמש חדש</h3>
+                    <form onsubmit="handleCreateUser(event)">
+                        <input type="text" class="login-input" id="newUsername" placeholder="שם משתמש חדש" required minlength="3" style="margin-bottom: 0.5rem;">
+                        <input type="text" class="login-input" id="newFullName" placeholder="שם מלא" required style="margin-bottom: 0.5rem;">
+                        <input type="text" class="login-input" id="newRole" placeholder="תפקיד (למשל: טכנאי תמיכה)" required style="margin-bottom: 0.5rem;">
+                        <input type="password" class="login-input" id="newUserPassword" placeholder="סיסמה" required minlength="6" style="margin-bottom: 0.5rem;">
+                        <input type="password" class="login-input" id="newUserConfirmPassword" placeholder="אשר סיסמה" required style="margin-bottom: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="submit" class="login-button" style="background: var(--success); flex: 1;">👤 צור משתמש</button>
+                            <button type="button" class="login-button" onclick="hideAllForms()" style="background: var(--gray-500); flex: 1;">❌ ביטול</button>
+                        </div>
+                    </form>
+                    <div id="createUserError" class="login-error" style="margin-top: 0.5rem;"></div>
+                </div>
+
+                <!-- Forgot Password Form (includes change password) -->
+                <div id="forgotPasswordForm" style="display: none;">
+                    <h3 style="margin: 1rem 0; color: var(--gray-700);">🤔 שכחת סיסמה?</h3>
+                    <p style="margin-bottom: 1rem; color: var(--gray-600); font-size: 0.9rem;">הזן שם משתמש לראות רמז או ליצור/שנות סיסמה</p>
+                    
+                    <!-- Step 1: Username input -->
+                    <div id="forgotPasswordStep1">
+                        <form onsubmit="handleForgotPasswordStep1(event)">
+                            <input type="text" class="login-input" id="forgotPasswordUsername" placeholder="שם משתמש" required style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" class="login-button" style="background: var(--primary); flex: 1;">🔍 בדק</button>
+                                <button type="button" class="login-button" onclick="hideAllForms()" style="background: var(--gray-500); flex: 1;">❌ ביטול</button>
+                            </div>
+                        </form>
                     </div>
+                    
+                    <!-- Step 2: Password change form -->
+                    <div id="forgotPasswordStep2" style="display: none;">
+                        <form onsubmit="handlePasswordChange(event)">
+                            <div style="background: var(--primary-light); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;">
+                                <strong id="foundUserInfo"></strong>
+                            </div>
+                            <input type="password" class="login-input" id="forgotCurrentPassword" placeholder="סיסמה נוכחית (אם יודע)" style="margin-bottom: 0.5rem;">
+                            <input type="password" class="login-input" id="forgotNewPassword" placeholder="סיסמה חדשה" required minlength="6" style="margin-bottom: 0.5rem;">
+                            <input type="password" class="login-input" id="forgotConfirmPassword" placeholder="אשר סיסמה חדשה" required style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" class="login-button" style="background: var(--success); flex: 1;">💾 שמור סיסמה</button>
+                                <button type="button" onclick="resetForgotPasswordForm()" class="login-button" style="background: var(--gray-500); flex: 1;">🔙 חזור</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="forgotPasswordResult" style="margin-top: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; display: none;"></div>
+                </div>
+
+                <!-- Forgot Username Form (includes create new user) -->
+                <div id="forgotUsernameForm" style="display: none;">
+                    <h3 style="margin: 1rem 0; color: var(--gray-700);">📛 שכחת שם משתמש?</h3>
+                    <p style="margin-bottom: 1rem; color: var(--gray-600); font-size: 0.9rem;">חפש משתמש קיים או צור משתמש חדש</p>
+                    
+                    <!-- Search existing users -->
+                    <div id="searchUserSection">
+                        <h4 style="color: var(--gray-700); margin-bottom: 0.5rem;">🔍 חפש משתמש קיים:</h4>
+                        <form onsubmit="handleForgotUsername(event)">
+                            <input type="text" class="login-input" id="forgotUsernameSearch" placeholder="שם מלא או תפקיד" style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" class="login-button" style="background: var(--primary); flex: 1;">🔍 חפש</button>
+                                <button type="button" class="login-button" onclick="hideAllForms()" style="background: var(--gray-500); flex: 1;">❌ ביטול</button>
+                            </div>
+                        </form>
+                        <div style="text-align: center; margin: 1rem 0;">
+                            <span style="color: var(--gray-500);">או</span>
+                        </div>
+                        <button type="button" onclick="showCreateNewUserSection()" class="login-button" style="background: var(--success); width: 100%;">
+                            👤 צור משתמש חדש
+                        </button>
+                    </div>
+                    
+                    <!-- Create new user section -->
+                    <div id="createNewUserSection" style="display: none;">
+                        <h4 style="color: var(--gray-700); margin-bottom: 0.5rem;">👤 יצירת משתמש חדש:</h4>
+                        <form onsubmit="handleCreateNewUser(event)">
+                            <input type="text" class="login-input" id="newUserUsername" placeholder="שם משתמש חדש" required minlength="3" style="margin-bottom: 0.5rem;">
+                            <input type="text" class="login-input" id="newUserFullName" placeholder="שם מלא" required style="margin-bottom: 0.5rem;">
+                            <input type="text" class="login-input" id="newUserRole" placeholder="תפקיד (למשל: טכנאי תמיכה)" required style="margin-bottom: 0.5rem;">
+                            <input type="password" class="login-input" id="newUserPassword" placeholder="סיסמה" required minlength="6" style="margin-bottom: 0.5rem;">
+                            <input type="password" class="login-input" id="newUserConfirmPassword" placeholder="אשר סיסמה" required style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" class="login-button" style="background: var(--success); flex: 1;">👤 צור משתמש</button>
+                                <button type="button" onclick="showSearchUserSection()" class="login-button" style="background: var(--gray-500); flex: 1;">🔙 חזור</button>
+                            </div>
+                        </form>
+                        <div id="newUserError" class="login-error" style="margin-top: 0.5rem;"></div>
+                    </div>
+                    
+                    <div id="forgotUsernameResult" style="margin-top: 1rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; display: none;"></div>
                 </div>
             </div>
         </div>
@@ -2380,6 +2479,60 @@
             }
         }
         
+        
+        // טיפול בשכחת שם משתמש
+        function handleForgotUsername(event) {
+            event.preventDefault();
+            
+            const searchTerm = document.getElementById('forgotUsernameSearch').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('forgotUsernameResult');
+            
+            if (!searchTerm) {
+                resultDiv.innerHTML = '⚠️ <strong>הזן מילת חיפוש</strong><br>הזן שם מלא או תפקיד לחיפוש';
+                resultDiv.style.background = 'var(--warning-light)';
+                resultDiv.style.color = 'var(--gray-800)';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            let foundUsers = [];
+            
+            // חיפוש בשמות המלאים ותפקידים
+            for (let username in users) {
+                const user = users[username];
+                if (user.name.toLowerCase().includes(searchTerm) || 
+                    user.role.toLowerCase().includes(searchTerm)) {
+                    foundUsers.push({
+                        username: username,
+                        name: user.name,
+                        role: user.role
+                    });
+                }
+            }
+            
+            if (foundUsers.length === 0) {
+                resultDiv.innerHTML = '❌ <strong>לא נמצאו משתמשים</strong><br>' +
+                                    'נסה חיפוש אחר או צור משתמש חדש<br><br>' +
+                                    '<button onclick="showCreateNewUserSection()" style="background: var(--success); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">👤 צור משתמש חדש</button>';
+                resultDiv.style.background = 'var(--danger-light)';
+                resultDiv.style.color = 'var(--danger)';
+            } else {
+                let resultHtml = '✅ <strong>נמצאו ' + foundUsers.length + ' משתמשים:</strong><br><br>';
+                
+                foundUsers.forEach(user => {
+                    resultHtml += '👤 <strong>' + user.name + '</strong><br>' +
+                                  '📛 שם משתמש: <code style="background: var(--gray-200); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace;">' + user.username + '</code><br>' +
+                                  '🏢 תפקיד: ' + user.role + '<br><br>';
+                });
+                
+                resultDiv.innerHTML = resultHtml;
+                resultDiv.style.background = 'var(--success-light)';
+                resultDiv.style.color = 'var(--gray-800)';
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+        
         // רישום פעולות משתמש (לעתיד)
         function logUserAction(action, details = '') {
             if (currentUser) {
@@ -2402,63 +2555,164 @@
         
         // הצגת מסך שינוי סיסמה
         function showChangePassword() {
-            document.querySelector('.login-form').style.display = 'none';
+            hideAllForms();
             document.getElementById('changePasswordForm').style.display = 'block';
-            document.getElementById('loginError').style.display = 'none';
         }
         
-        // הסתרת מסך שינוי סיסמה
-        function hideChangePassword() {
-            document.querySelector('.login-form').style.display = 'block';
-            document.getElementById('changePasswordForm').style.display = 'none';
-            document.getElementById('changePasswordError').style.display = 'none';
-            // איפוס שדות
-            document.getElementById('changeUsername').value = '';
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
+        // הצגת מסך שכחתי סיסמה
+        function showForgotPassword() {
+            hideAllForms();
+            document.getElementById('forgotPasswordForm').style.display = 'block';
         }
         
-        // טיפול בשינוי סיסמה
-        function handleChangePassword(event) {
+        // הצגת מסך שכחתי שם משתמש
+        function showForgotUsername() {
+            hideAllForms();
+            document.getElementById('forgotUsernameForm').style.display = 'block';
+            showSearchUserSection();
+        }
+        
+        // הצגת סעיף חיפוש משתמש
+        function showSearchUserSection() {
+            document.getElementById('searchUserSection').style.display = 'block';
+            document.getElementById('createNewUserSection').style.display = 'none';
+            document.getElementById('forgotUsernameResult').style.display = 'none';
+        }
+        
+        // הצגת סעיף יצירת משתמש חדש
+        function showCreateNewUserSection() {
+            document.getElementById('searchUserSection').style.display = 'none';
+            document.getElementById('createNewUserSection').style.display = 'block';
+            document.getElementById('forgotUsernameResult').style.display = 'none';
+        }
+        
+        // טיפול ביצירת משתמש חדש (מתוך שכחתי שם משתמש)
+        function handleCreateNewUser(event) {
             event.preventDefault();
             
-            const username = document.getElementById('changeUsername').value.trim();
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const errorDiv = document.getElementById('changePasswordError');
+            const username = document.getElementById('newUserUsername').value.trim();
+            const fullName = document.getElementById('newUserFullName').value.trim();
+            const role = document.getElementById('newUserRole').value.trim();
+            const password = document.getElementById('newUserPassword').value;
+            const confirmPassword = document.getElementById('newUserConfirmPassword').value;
+            const errorDiv = document.getElementById('newUserError');
             
             errorDiv.style.display = 'none';
             
             // בדיקות תקינות
-            if (!users[username]) {
-                errorDiv.textContent = 'שם משתמש לא קיים';
+            if (username.length < 3) {
+                errorDiv.textContent = 'שם משתמש חייב להיות לפחות 3 תווים';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            if (users[username].password !== currentPassword) {
-                errorDiv.textContent = 'סיסמה נוכחית שגויה';
+            if (users[username]) {
+                errorDiv.textContent = 'שם משתמש כבר קיים - בחר שם אחר';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            if (newPassword.length < 6) {
-                errorDiv.textContent = 'סיסמה חדשה חייבת להיות לפחות 6 תווים';
+            if (password.length < 6) {
+                errorDiv.textContent = 'סיסמה חייבת להיות לפחות 6 תווים';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            if (newPassword !== confirmPassword) {
+            if (password !== confirmPassword) {
                 errorDiv.textContent = 'אישור סיסמה לא תואם';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            if (newPassword === currentPassword) {
-                errorDiv.textContent = 'סיסמה חדשה חייבת להיות שונה מהנוכחית';
-                errorDiv.style.display = 'block';
+            // יצירת המשתמש החדש
+            users[username] = {
+                password: password,
+                name: fullName,
+                role: role
+            };
+            
+            // שמירה ב-localStorage
+            localStorage.setItem('hd_users', JSON.stringify(users));
+            
+            // הודעת הצלחה
+            alert('✅ משתמש חדש נוצר בהצלחה!\\n\\n' +
+                  'שם משתמש: ' + username + '\\n' +
+                  'שם מלא: ' + fullName + '\\n' +
+                  'תפקיד: ' + role + '\\n\\n' +
+                  'עכשיו ניתן להתחבר עם הפרטים החדשים.');
+            
+            hideAllForms();
+            
+            // רישום פעולה
+            console.log('👤 משתמש חדש נוצר: ' + username + ' (' + fullName + ') בזמן: ' + new Date().toLocaleString('he-IL'));
+        }
+        
+        // טיפול בשכחת סיסמה - שלב 1: בדיקת משתמש
+        function handleForgotPasswordStep1(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('forgotPasswordUsername').value.trim();
+            const resultDiv = document.getElementById('forgotPasswordResult');
+            
+            if (!users[username]) {
+                resultDiv.innerHTML = '❌ <strong>שם משתמש לא קיים</strong><br>בדוק את האיות או צור משתמש חדש';
+                resultDiv.style.background = 'var(--danger-light)';
+                resultDiv.style.color = 'var(--danger)';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            const user = users[username];
+            
+            // עדכון פרטי המשתמש
+            document.getElementById('foundUserInfo').innerHTML = 
+                '👤 ' + user.name + '<br>🏢 ' + user.role + '<br>🔍 רמז לסיסמה: ' + 
+                (user.password.length > 2 ? user.password.substring(0, 2) + '*'.repeat(user.password.length - 2) : '*'.repeat(user.password.length));
+            
+            // העבר לשלב 2
+            document.getElementById('forgotPasswordStep1').style.display = 'none';
+            document.getElementById('forgotPasswordStep2').style.display = 'block';
+            document.getElementById('forgotPasswordResult').style.display = 'none';
+            
+            // שמור את שם המשתמש לשלב הבא
+            document.getElementById('forgotPasswordStep2').dataset.username = username;
+        }
+        
+        // טיפול בשכחת סיסמה - שלב 2: שינוי סיסמה  
+        function handlePasswordChange(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('forgotPasswordStep2').dataset.username;
+            const currentPassword = document.getElementById('forgotCurrentPassword').value;
+            const newPassword = document.getElementById('forgotNewPassword').value;
+            const confirmPassword = document.getElementById('forgotConfirmPassword').value;
+            const resultDiv = document.getElementById('forgotPasswordResult');
+            
+            resultDiv.style.display = 'none';
+            
+            // בדיקות תקינות
+            if (newPassword.length < 6) {
+                resultDiv.innerHTML = '❌ סיסמה חדשה חייבת להיות לפחות 6 תווים';
+                resultDiv.style.background = 'var(--danger-light)';
+                resultDiv.style.color = 'var(--danger)';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                resultDiv.innerHTML = '❌ אישור סיסמה לא תואם';
+                resultDiv.style.background = 'var(--danger-light)';
+                resultDiv.style.color = 'var(--danger)';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // בדיקת סיסמה נוכחית אם הוזנה
+            if (currentPassword && users[username].password !== currentPassword) {
+                resultDiv.innerHTML = '❌ סיסמה נוכחית שגויה';
+                resultDiv.style.background = 'var(--danger-light)';
+                resultDiv.style.color = 'var(--danger)';
+                resultDiv.style.display = 'block';
                 return;
             }
             
@@ -2469,12 +2723,69 @@
             localStorage.setItem('hd_users', JSON.stringify(users));
             
             // הודעת הצלחה
-            alert('✅ הסיסמה שונתה בהצלחה!\\nהשינוי יישמר רק במחשב זה.\\nלשינוי קבוע - עדכנו את הקוד.');
+            alert('✅ הסיסמה שונתה בהצלחה!\\n\\n' +
+                  'שם משתמש: ' + username + '\\n' +
+                  'סיסמה חדשה: ' + newPassword + '\\n\\n' +
+                  'עכשיו ניתן להתחבר עם הסיסמה החדשה.');
             
-            hideChangePassword();
+            hideAllForms();
             
             // רישום פעולה
             console.log('🔑 סיסמה שונתה עבור משתמש: ' + username + ' בזמן: ' + new Date().toLocaleString('he-IL'));
+        }
+        
+        // איפוס טופס שכחת סיסמה
+        function resetForgotPasswordForm() {
+            document.getElementById('forgotPasswordStep1').style.display = 'block';
+            document.getElementById('forgotPasswordStep2').style.display = 'none';
+            document.getElementById('forgotPasswordResult').style.display = 'none';
+            document.getElementById('forgotCurrentPassword').value = '';
+            document.getElementById('forgotNewPassword').value = '';
+            document.getElementById('forgotConfirmPassword').value = '';
+        }
+        
+        // הסתרת כל הטפסים וחזרה לכניסה
+        function hideAllForms() {
+            document.querySelector('.login-form').style.display = 'block';
+            document.getElementById('changePasswordForm').style.display = 'none';
+            document.getElementById('createUserForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('forgotUsernameForm').style.display = 'none';
+            document.getElementById('loginError').style.display = 'none';
+            
+            // איפוס שכחת סיסמה
+            resetForgotPasswordForm();
+            
+            // איפוס שכחתי שם משתמש
+            showSearchUserSection();
+            
+            // איפוס כל הטפסים
+            document.getElementById('changeUsername').value = '';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newFullName').value = '';
+            document.getElementById('newRole').value = '';
+            document.getElementById('newUserPassword').value = '';
+            document.getElementById('newUserConfirmPassword').value = '';
+            document.getElementById('forgotPasswordUsername').value = '';
+            document.getElementById('forgotUsernameSearch').value = '';
+            document.getElementById('newUserUsername').value = '';
+            document.getElementById('newUserFullName').value = '';
+            document.getElementById('newUserRole').value = '';
+            
+            // איפוס הודעות שגיאה
+            document.getElementById('changePasswordError').style.display = 'none';
+            document.getElementById('createUserError').style.display = 'none';
+            document.getElementById('forgotPasswordResult').style.display = 'none';
+            document.getElementById('forgotUsernameResult').style.display = 'none';
+            document.getElementById('newUserError').style.display = 'none';
+        }
+        
+        // הסתרת מסך שינוי סיסמה (תאימות לאחור)
+        function hideChangePassword() {
+            hideAllForms();
         }
         
         // פונקציה לשינוי שם משתמש (לאדמין בלבד)
