@@ -352,10 +352,30 @@
                     <button type="submit" class="login-button">
                         🔐 התחבר למערכת
                     </button>
+                    <button type="button" class="login-button" onclick="showChangePassword()" style="background: var(--warning); margin-top: 0.5rem;">
+                        🔑 שנה סיסמה
+                    </button>
                 </form>
                 
                 <div id="loginError" class="login-error">
                     שם משתמש או סיסמה שגויים
+                </div>
+                
+                <!-- Change Password Form -->
+                <div id="changePasswordForm" style="display: none;">
+                    <h3 style="margin: 1rem 0; color: var(--gray-700);">🔑 שינוי סיסמה</h3>
+                    <form onsubmit="handleChangePassword(event)">
+                        <input type="text" class="login-input" id="changeUsername" placeholder="שם משתמש" required style="margin-bottom: 0.5rem;">
+                        <input type="password" class="login-input" id="currentPassword" placeholder="סיסמה נוכחית" required style="margin-bottom: 0.5rem;">
+                        <input type="password" class="login-input" id="newPassword" placeholder="סיסמה חדשה" required minlength="6" style="margin-bottom: 0.5rem;">
+                        <input type="password" class="login-input" id="confirmPassword" placeholder="אשר סיסמה חדשה" required style="margin-bottom: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="submit" class="login-button" style="background: var(--success); flex: 1;">💾 שמור</button>
+                            <button type="button" class="login-button" onclick="hideChangePassword()" style="background: var(--gray-500); flex: 1;">❌ ביטול</button>
+                        </div>
+                    </form>
+                    <div id="changePasswordError" class="login-error" style="margin-top: 0.5rem;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -2375,6 +2395,136 @@
                 document.getElementById('mainApp').style.display = 'none';
             }
         });
+        
+        // ============================================
+        // 🔑 מערכת שינוי סיסמאות ושמות משתמש
+        // ============================================
+        
+        // הצגת מסך שינוי סיסמה
+        function showChangePassword() {
+            document.querySelector('.login-form').style.display = 'none';
+            document.getElementById('changePasswordForm').style.display = 'block';
+            document.getElementById('loginError').style.display = 'none';
+        }
+        
+        // הסתרת מסך שינוי סיסמה
+        function hideChangePassword() {
+            document.querySelector('.login-form').style.display = 'block';
+            document.getElementById('changePasswordForm').style.display = 'none';
+            document.getElementById('changePasswordError').style.display = 'none';
+            // איפוס שדות
+            document.getElementById('changeUsername').value = '';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+        
+        // טיפול בשינוי סיסמה
+        function handleChangePassword(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('changeUsername').value.trim();
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('changePasswordError');
+            
+            errorDiv.style.display = 'none';
+            
+            // בדיקות תקינות
+            if (!users[username]) {
+                errorDiv.textContent = 'שם משתמש לא קיים';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (users[username].password !== currentPassword) {
+                errorDiv.textContent = 'סיסמה נוכחית שגויה';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                errorDiv.textContent = 'סיסמה חדשה חייבת להיות לפחות 6 תווים';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                errorDiv.textContent = 'אישור סיסמה לא תואם';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword === currentPassword) {
+                errorDiv.textContent = 'סיסמה חדשה חייבת להיות שונה מהנוכחית';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // שינוי הסיסמה
+            users[username].password = newPassword;
+            
+            // שמירה ב-localStorage
+            localStorage.setItem('hd_users', JSON.stringify(users));
+            
+            // הודעת הצלחה
+            alert('✅ הסיסמה שונתה בהצלחה!\\nהשינוי יישמר רק במחשב זה.\\nלשינוי קבוע - עדכנו את הקוד.');
+            
+            hideChangePassword();
+            
+            // רישום פעולה
+            console.log('🔑 סיסמה שונתה עבור משתמש: ' + username + ' בזמן: ' + new Date().toLocaleString('he-IL'));
+        }
+        
+        // פונקציה לשינוי שם משתמש (לאדמין בלבד)
+        function changeUsername(oldUsername, newUsername) {
+            if (!users[oldUsername]) {
+                console.error('משתמש לא קיים:', oldUsername);
+                return false;
+            }
+            
+            if (users[newUsername]) {
+                console.error('שם המשתמש החדש כבר קיים:', newUsername);
+                return false;
+            }
+            
+            // העתקת פרטי המשתמש לשם החדש
+            users[newUsername] = { ...users[oldUsername] };
+            
+            // מחיקת השם הישן
+            delete users[oldUsername];
+            
+            // עדכון משתמש מחובר אם רלוונטי
+            if (currentUser && currentUser.username === oldUsername) {
+                currentUser.username = newUsername;
+                localStorage.setItem('hd_current_user', JSON.stringify(currentUser));
+            }
+            
+            // שמירה
+            localStorage.setItem('hd_users', JSON.stringify(users));
+            
+            console.log('👤 שם משתמש שונה מ-' + oldUsername + ' ל-' + newUsername);
+            return true;
+        }
+        
+        // טעינת משתמשים שמורים מ-localStorage
+        function loadSavedUsers() {
+            const savedUsers = localStorage.getItem('hd_users');
+            if (savedUsers) {
+                try {
+                    const parsedUsers = JSON.parse(savedUsers);
+                    // מיזוג עם משתמשי ברירת מחדל
+                    Object.assign(users, parsedUsers);
+                    console.log('👥 טעינת משתמשים שמורים מהמחשב');
+                } catch(e) {
+                    console.error('שגיאה בטעינת משתמשים:', e);
+                }
+            }
+        }
+        
+        // קריאה ראשונית לטעינת משתמשים
+        loadSavedUsers();
 
     </script>
 </body>
